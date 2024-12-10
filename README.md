@@ -1,6 +1,6 @@
 # DMReproducible: automating differential methylation analysis of DNA methylation sequencing data
 
-A restructured version of DMRworkflow that is intended to split out workflow functionality into 3 subunits:
+A restructured version of [DMRworkflow](https://github.com/MSleeper1/dmr_workflow) that is intended to split out workflow functionality into 3 subunits:
 
 1. initialize: downloads reference and sample fastqs, and indexes genome references for alignment.
 2. secondary: aligns samples to reference, identifies DMRs, annotates gene features to DMRs, and runs basic QC checks.
