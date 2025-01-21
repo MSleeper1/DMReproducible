@@ -18,8 +18,8 @@ rule sambamba_merge_bwameth:
        bams = lambda wildcards: expand("{root}/{data_dir}/04_deduped_sambamba/{{ref}}--{{patient_id}}-{{group}}-{{srx_id}}-{{layout}}/{accession}_trimmed_sorted_dedup.bam", root = config["root"], data_dir=config["data_dir"], accession = sample_info[sample_info["srx_id"] == wildcards.srx_id]["accession"].tolist())
     
     output:
-        merged_bam = expand("{root}/{data_dir}/05_merged_sambamba_bwa/{{ref}}--{{patient_id}}-{{group}}-{{srx_id}}-{{layout}}_merged.bam", root = config["root"], data_dir=config["data_dir"]),
-        bai = expand("{root}/{data_dir}/05_merged_sambamba_bwa/{{ref}}--{{patient_id}}-{{group}}-{{srx_id}}-{{layout}}_merged.bam.bai", root = config["root"], data_dir=config["data_dir"])
+        merged_bam = expand("{root}/{data_dir}/05_merged_sambamba_bwa/{{ref}}--{{patient_id}}-{{group}}-{{srx_id}}-{{layout}}.bam", root = config["root"], data_dir=config["data_dir"]),
+        bai = expand("{root}/{data_dir}/05_merged_sambamba_bwa/{{ref}}--{{patient_id}}-{{group}}-{{srx_id}}-{{layout}}.bam.bai", root = config["root"], data_dir=config["data_dir"])
 
     log:
         "logs/secondary_rules/05_sambamba_merge_bwameth/05_sambamba_merge_bwameth-{ref}--{patient_id}-{group}-{srx_id}-{layout}.log"
@@ -68,7 +68,7 @@ rule sambamba_merge_bismark:
         bams = lambda wildcards: expand("{root}/{data_dir}/04_bismark_deduped/{{ref}}--{{patient_id}}-{{group}}-{{srx_id}}-{{layout}}/{accession}_bismark.deduplicated.bam", root = config["root"], data_dir=config["data_dir"], accession = sample_info[sample_info["srx_id"] == wildcards.srx_id]["accession"].tolist())
     
     output:
-        merged_bam = expand("{root}/{data_dir}/05_merged_sambamba_bis/{{ref}}--{{patient_id}}-{{group}}-{{srx_id}}-{{layout}}_merged.bam", root = config["root"], data_dir=config["data_dir"])
+        merged_bam = expand("{root}/{data_dir}/05_merged_sambamba_bis/{{ref}}--{{patient_id}}-{{group}}-{{srx_id}}-{{layout}}.bam", root = config["root"], data_dir=config["data_dir"])
 
     log:
         "logs/secondary_rules/05_sambamba_merge_bismark/05_sambamba_merge_bismark-{ref}--{patient_id}-{group}-{srx_id}-{layout}.log"
