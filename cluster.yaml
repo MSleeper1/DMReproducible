@@ -40,6 +40,9 @@ scheduler: greedy                                               # scheduler to u
 use-conda: True                                                 # use conda to manage software dependencies
 
  ### rule specific settings ###
+# memory and time limits for each rule
+
+# Initize rules
 ref_index_bwameth:                                       # rule name 
     time: 05:00:00                                              # time limit for each job (D-HH:MM)
     mem_mb: 15000                                               # memory limit for each job (in MB)      
@@ -59,7 +62,9 @@ get_samples_se:
 get_samples_pe:
     time: 03:00:00
     mem_mb: 15000  
-   
+
+# Secondary rules
+# 01 qc rules
 fastq_screen_se:
     time: 0-20:00:00
     mem_mb: 20000
@@ -70,10 +75,12 @@ fastq_screen_pe:
     mem_mb: 20000
     cpu-per-task: 8
 
+# 02 trimming rules
 trim_galore_se:
     time: 03:00:00
     mem_mb: 15000
 
+# 03 mapping rules
 bismark_mapping_se:
     time: 0-20:00:00
     mem_mb: 20000
@@ -92,15 +99,26 @@ bwameth_mapping_pe:
     mem_mb: 20000
     cpus-per-task: 4
 
-sambamba_sort_index_markdups:
+# 04 and 06 deduplication rules
+sambamba_sort_index_markdups_pre_merge_bwa:
     time: 0-10:00:00
     mem_mb: 8000
     cpus-per-task: 4
 
-deduplicate_bismark:
+sambamba_sort_index_markdups_post_merge_bwa:
+    time: 0-10:00:00
+    mem_mb: 8000
+    cpus-per-task: 4
+
+deduplicate_bismark_pre_merge:
     time: 0-10:00:00
     mem_mb: 8000
 
+deduplicate_bismark_post_merge:
+    time: 0-10:00:00
+    mem_mb: 8000
+
+# 05 merge rules
 sambamba_merge_bwameth:
     time: 0-10:00:00
     mem_mb: 8000
@@ -111,32 +129,80 @@ sambamba_merge_bismark:
     mem_mb: 8000
     cpus-per-task: 4
 
-mosdepth_bwa:
+# 04 and 06 qc rules
+bismark_sort_by_coordinate_pre_merge:
+    time: 0-20:00:00
+    mem_mb: 8000
+    cpu-per-task: 4
+
+bismark_sort_by_coordinate_post_merge:
+    time: 0-20:00:00
+    mem_mb: 8000
+    cpu-per-task: 4
+    
+mosdepth_pre_merge_bwa:
     time: 0-10:00:00
     mem_mb: 8000
     cpus-per-task: 4
 
-mosdepth_bis:
+mosdepth_pre_merge_bis:
     time: 0-10:00:00
     mem_mb: 8000
     cpus-per-task: 4
 
-feature_counts_bwa:
+mosdepth_post_merge_bwa:
     time: 0-10:00:00
     mem_mb: 8000
     cpus-per-task: 4
 
-feature_counts_bis:
+mosdepth_post_merge_bis:
+    time: 0-10:00:00
+    mem_mb: 8000
+    cpus-per-task: 4
+
+bismark_pre_merge_nuc_freq:
+    time: 0-10:00:00
+    mem_mb: 8000
+    cpus-per-task: 4
+
+bismark_post_merge_nuc_freq:
+    time: 0-10:00:00
+    mem_mb: 8000
+    cpus-per-task: 4
+
+feature_counts_pre_merge_bwa:
+    time: 0-10:00:00
+    mem_mb: 8000
+    cpus-per-task: 4
+
+feature_counts_pre_merge_bis:
+    time: 0-10:00:00
+    mem_mb: 8000
+    cpus-per-task: 4
+
+feature_counts_post_merge_bwa:
+    time: 0-10:00:00
+    mem_mb: 8000
+    cpus-per-task: 4
+
+feature_counts_post_merge_bis:
     time: 0-10:00:00
     mem_mb: 8000
     cpus-per-task: 4
 
 qualimap_post_merge_bwa:
-    mem_mb: 4000
+    mem_mb: 8000
 
 qualimap_post_merge_bis:
-    mem_mb: 4000
+    mem_mb: 8000
 
+qualimap_pre_merge_bis:
+    mem_mb: 8000
+
+qualimap_pre_merge_bwa:
+    mem_mb: 8000
+
+# 07 methylation extraction rules
 bismark_methylation_extractor_se:
     time: 0-20:00:00
     mem_mb: 8000
@@ -152,11 +218,6 @@ wgbstools_convert_bam_to_beta_bwa:
 wgbstools_convert_bam_to_beta_bis:
     time: 0-20:00:00
     mem_mb: 8000
-
-bismark_sort_by_coordinate:
-    time: 0-20:00:00
-    mem_mb: 8000
-    cpu-per-task: 4
 
 
 
