@@ -60,8 +60,9 @@ rule fastqc_pre_merge_bis:
 # output: samtools stats report for deduplicated sequence files (.stats text file)
 rule samtools_stats_pre_merge_bwa:
     input:
-        bam = expand("{root}/{data_dir}/04_deduped_sambamba/{{ref}}--{{patient_id}}-{{group}}-{{srx_id}}-{{layout}}/{{accession}}_trimmed_sorted_dedup.bam", root = config["root"], data_dir=config["data_dir"]) # sambamba output
-
+        bam = expand("{root}/{data_dir}/04_deduped_sambamba/{{ref}}--{{patient_id}}-{{group}}-{{srx_id}}-{{layout}}/{{accession}}_trimmed_sorted_dedup.bam", root = config["root"], data_dir=config["data_dir"]), # sambamba output
+        ref = expand("{root}/{genomes_dir}/{genome}/{fasta}.fa", root = config["root"], genomes_dir = config["genomes_dir"], genome = config["ref"]["genome"], fasta = config["ref"]["fasta"])
+    
     output:
         report = expand("{root}/{rep_dir}/04_samtools_pre_merge_bwa/{{ref}}--{{patient_id}}-{{group}}-{{srx_id}}-{{layout}}/{{accession}}_trimmed_sorted_dedup.bam.stats", root = config["root"], rep_dir=config["reports_dir"])
 
@@ -71,14 +72,15 @@ rule samtools_stats_pre_merge_bwa:
     shell:
         """
         echo "Running samtools stats on {input.bam}" > {output.report}
-        samtools stats -p -d {input.bam} >> {output.report}
+        samtools stats -p -d -r {input.ref} {input.bam} >> {output.report}
         echo "Done" >> {output.report}
         """
 
 rule samtools_stats_pre_merge_bis:
     input:
-        bam = expand("{root}/{data_dir}/04_bismark_deduped/{{ref}}--{{patient_id}}-{{group}}-{{srx_id}}-{{layout}}/{{accession}}_bismark.deduplicated.bam", root = config["root"], data_dir=config["data_dir"])
-
+        bam = expand("{root}/{data_dir}/04_bismark_deduped/{{ref}}--{{patient_id}}-{{group}}-{{srx_id}}-{{layout}}/{{accession}}_bismark.deduplicated.bam", root = config["root"], data_dir=config["data_dir"]),
+        ref = expand("{root}/{genomes_dir}/{genome}/{fasta}.fa", root = config["root"], genomes_dir = config["genomes_dir"], genome = config["ref"]["genome"], fasta = config["ref"]["fasta"])
+    
     output:
         report = expand("{root}/{rep_dir}/04_samtools_pre_merge_bis/{{ref}}--{{patient_id}}-{{group}}-{{srx_id}}-{{layout}}/{{accession}}_bismark.deduplicated.bam.stats", root = config["root"], rep_dir=config["reports_dir"])
 
@@ -88,7 +90,45 @@ rule samtools_stats_pre_merge_bis:
     shell:
         """
         echo "Running samtools stats on {input.bam}" > {output.report}
-        samtools stats -p -d {input.bam} >> {output.report}
+        samtools stats -p -d -r {input.ref} {input.bam} >> {output.report}
+        echo "Done" >> {output.report}
+        """
+
+### Samtools Flagstat Rule ###
+# samtools flagstat is a program that generates general statistics for sequence files
+# input: trimmed, aligned, and deduplicated sequence files (bam)
+# output: samtools flagstat report for deduplicated sequence files (.flagstat text file)
+rule samtools_flagstat_pre_merge_bwa:
+    input:
+        bam = expand("{root}/{data_dir}/04_deduped_sambamba/{{ref}}--{{patient_id}}-{{group}}-{{srx_id}}-{{layout}}/{{accession}}_trimmed_sorted_dedup.bam", root = config["root"], data_dir=config["data_dir"])
+    
+    output:
+        report = expand("{root}/{rep_dir}/04_samtools_pre_merge_bwa/{{ref}}--{{patient_id}}-{{group}}-{{srx_id}}-{{layout}}/{{accession}}_trimmed_sorted_dedup.bam.flagstat", root = config["root"], rep_dir=config["reports_dir"])
+
+    conda:
+        "../../environment_files/samtools.yaml"
+
+    shell:
+        """
+        echo "Running samtools flagstat on {input.bam}" > {output.report}
+        samtools flagstat {input.bam} >> {output.report}
+        echo "Done" >> {output.report}
+        """
+
+rule samtools_flagstat_pre_merge_bis:
+    input:
+        bam = expand("{root}/{data_dir}/04_bismark_deduped/{{ref}}--{{patient_id}}-{{group}}-{{srx_id}}-{{layout}}/{{accession}}_bismark.deduplicated.bam", root = config["root"], data_dir=config["data_dir"])
+    
+    output:
+        report = expand("{root}/{rep_dir}/04_samtools_pre_merge_bis/{{ref}}--{{patient_id}}-{{group}}-{{srx_id}}-{{layout}}/{{accession}}_bismark.deduplicated.bam.flagstat", root = config["root"], rep_dir=config["reports_dir"])
+    
+    conda:
+        "../../environment_files/samtools.yaml"
+    
+    shell:
+        """
+        echo "Running samtools flagstat on {input.bam}" > {output.report}
+        samtools flagstat {input.bam} >> {output.report}
         echo "Done" >> {output.report}
         """
 
@@ -100,7 +140,9 @@ rule qualimap_pre_merge_bwa:
         bwa_bam = expand("{root}/{data_dir}/04_deduped_sambamba/{{ref}}--{{patient_id}}-{{group}}-{{srx_id}}-{{layout}}/{{accession}}_trimmed_sorted_dedup.bam", root = config["root"], data_dir = config["data_dir"]),
 
     output:
-        directory(expand("{root}/{rep_dir}/04_qualimap_bwa/{{ref}}--{{patient_id}}-{{group}}-{{srx_id}}-{{layout}}/{{accession}}_pre_merge", root = config["root"], rep_dir=config["reports_dir"]))
+        directory(expand("{root}/{rep_dir}/04_qualimap_bwa/{{ref}}--{{patient_id}}-{{group}}-{{srx_id}}-{{layout}}/{{accession}}_pre_merge", root = config["root"], rep_dir=config["reports_dir"])),
+        expand("{root}/{rep_dir}/04_qualimap_bwa/{{ref}}--{{patient_id}}-{{group}}-{{srx_id}}-{{layout}}/{{accession}}_pre_merge/genome_results.txt", root = config["root"], rep_dir=config["reports_dir"]),
+        directory(expand("{root}/{rep_dir}/04_qualimap_bwa/{{ref}}--{{patient_id}}-{{group}}-{{srx_id}}-{{layout}}/{{accession}}_pre_merge/raw_data_qualimapReport", root = config["root"], rep_dir=config["reports_dir"]))
 
     log:
         "logs/secondary_rules/04_qualimap_pre_merge_bwa/04_qualimap_pre_merge_bwa-{ref}--{patient_id}-{group}-{srx_id}-{layout}-{accession}.log"
@@ -129,7 +171,9 @@ rule qualimap_pre_merge_bis:
         gtf = expand("{root}/{genomes_dir}/{genome}/{gtf}.gtf", root = config["root"], genomes_dir = config["genomes_dir"], genome = config["ref"]["genome"], gtf = config["ref"]["gtf"])
     
     output:
-        directory(expand("{root}/{rep_dir}/04_qualimap_bis/{{ref}}--{{patient_id}}-{{group}}-{{srx_id}}-{{layout}}/{{accession}}_pre_merge", root = config["root"], rep_dir=config["reports_dir"]))
+        directory(expand("{root}/{rep_dir}/04_qualimap_bis/{{ref}}--{{patient_id}}-{{group}}-{{srx_id}}-{{layout}}/{{accession}}_pre_merge", root = config["root"], rep_dir=config["reports_dir"])),
+        expand("{root}/{rep_dir}/04_qualimap_bis/{{ref}}--{{patient_id}}-{{group}}-{{srx_id}}-{{layout}}/{{accession}}_pre_merge/genome_results.txt", root = config["root"], rep_dir=config["reports_dir"]),
+        directory(expand("{root}/{rep_dir}/04_qualimap_bis/{{ref}}--{{patient_id}}-{{group}}-{{srx_id}}-{{layout}}/{{accession}}_pre_merge/raw_data_qualimapReport", root = config["root"], rep_dir=config["reports_dir"]))
 
     log:
         "logs/secondary_rules/04_qualimap_pre_merge_bis/04_qualimap_pre_merge_bis-{ref}--{patient_id}-{group}-{srx_id}-{layout}-{accession}.log"
@@ -160,10 +204,10 @@ rule qualimap_pre_merge_bis:
 rule feature_counts_pre_merge_bwa:
     input:
         sam = expand("{root}/{data_dir}/04_deduped_sambamba/{{ref}}--{{patient_id}}-{{group}}-{{srx_id}}-{{layout}}/{{accession}}_trimmed_sorted_dedup.bam", root = config["root"], data_dir = config["data_dir"]),
-        annotation = expand("{root}/{genomes_dir}/{genome}/{gtf}.gtf", root = config["root"], genomes_dir = config["genomes_dir"], genome = config["ref"]["genome"], gtf = config["ref"]["gtf"])
+        annotation = expand("{root}/{genomes_dir}/{genome}/{gtf}.gtf", root = config["root"], genomes_dir = config["genomes_dir"], genome = config["ref"]["genome"], gtf = config["ref"]["gtf"]),
         # optional input
         # chr_names="",           # implicitly sets the -A flag
-        # fasta="genome.fasta"      # implicitly sets the -G flag
+        fasta=expand("{root}/{genomes_dir}/{genome}/{fasta}.fa", root = config["root"], genomes_dir = config["genomes_dir"], genome = config["ref"]["genome"], fasta = config["ref"]["fasta"]) # implicitly sets the -G flag
     
     output:
         expand("{root}/{rep_dir}/04_feature_counts_bwa/{{ref}}--{{patient_id}}-{{group}}-{{srx_id}}-{{layout}}/{{accession}}_trimmed_sorted_dedup.featureCounts{suf}", root = config["root"], rep_dir=config["reports_dir"], suf=["", ".summary", ".jcounts"])
@@ -188,11 +232,11 @@ rule feature_counts_pre_merge_bwa:
 rule feature_counts_pre_merge_bis:
     input:
         sam = expand("{root}/{data_dir}/04_bismark_deduped/{{ref}}--{{patient_id}}-{{group}}-{{srx_id}}-{{layout}}/{{accession}}_bismark.deduplicated.bam", root = config["root"], data_dir=config["data_dir"]),
-        annotation = expand("{root}/{genomes_dir}/{genome}/{gtf}.gtf", root = config["root"], genomes_dir = config["genomes_dir"], genome = config["ref"]["genome"], gtf = config["ref"]["gtf"])
+        annotation = expand("{root}/{genomes_dir}/{genome}/{gtf}.gtf", root = config["root"], genomes_dir = config["genomes_dir"], genome = config["ref"]["genome"], gtf = config["ref"]["gtf"]),
         # optional input
         # chr_names="",           # implicitly sets the -A flag
-        # fasta="genome.fasta"      # implicitly sets the -G flag
-    
+        fasta=expand("{root}/{genomes_dir}/{genome}/{fasta}.fa", root = config["root"], genomes_dir = config["genomes_dir"], genome = config["ref"]["genome"], fasta = config["ref"]["fasta"]) # implicitly sets the -G flag
+
     output:
         expand("{root}/{rep_dir}/04_feature_counts_bis/{{ref}}--{{patient_id}}-{{group}}-{{srx_id}}-{{layout}}/{{accession}}__bismark_deduplicated.featureCounts{suf}", root = config["root"], rep_dir=config["reports_dir"], suf=["", ".summary", ".jcounts"])
 
@@ -250,6 +294,38 @@ rule mosdepth_pre_merge_bis:
         echo "Done" >> {log}
         '''
 
+rule mosdepth_pre_merge_bwa:
+    input:
+        bam = expand("{root}/{data_dir}/04_deduped_sambamba/{{ref}}--{{patient_id}}-{{group}}-{{srx_id}}-{{layout}}/{{accession}}_trimmed_sorted_dedup.bam", root = config["root"], data_dir=config["data_dir"]),
+        bai = expand("{root}/{data_dir}/04_deduped_sambamba/{{ref}}--{{patient_id}}-{{group}}-{{srx_id}}-{{layout}}/{{accession}}_trimmed_sorted_dedup.bam.bai", root = config["root"], data_dir=config["data_dir"])
+    
+    output:
+        expand("{root}/{rep_dir}/04_mosdepth_pre_merge_bwa/{{ref}}--{{patient_id}}-{{group}}-{{srx_id}}-{{layout}}/{{accession}}_trimmed_sorted_dedup.mosdepth.global.dist.txt", root = config["root"], rep_dir=config["reports_dir"]),
+        expand("{root}/{rep_dir}/04_mosdepth_pre_merge_bwa/{{ref}}--{{patient_id}}-{{group}}-{{srx_id}}-{{layout}}/{{accession}}_trimmed_sorted_dedup.per-base.bed.gz", root = config["root"], rep_dir=config["reports_dir"]), # produced unless --no-per-base specified
+        expand("{root}/{rep_dir}/04_mosdepth_pre_merge_bwa/{{ref}}--{{patient_id}}-{{group}}-{{srx_id}}-{{layout}}/{{accession}}_trimmed_sorted_dedup.per-base.bed.gz.csi", root = config["root"], rep_dir=config["reports_dir"]), # produced unless --no-per-base specified
+        expand("{root}/{rep_dir}/04_mosdepth_pre_merge_bwa/{{ref}}--{{patient_id}}-{{group}}-{{srx_id}}-{{layout}}/{{accession}}_trimmed_sorted_dedup.mosdepth.summary.txt", root = config["root"], rep_dir=config["reports_dir"]) # this named output is required for prefix parsing
+
+    log:
+        "logs/secondary_rules/04_mosdepth_bwa/04_mosdepth_bwa-{ref}--{patient_id}-{group}-{srx_id}-{layout}-{accession}.log"
+
+    conda:
+        "../../environment_files/mosdepth.yaml"
+
+    params:
+        extra="--fast-mode",  # optional
+        mapping_quality = 10,
+        out_prefix = expand("{root}/{rep_dir}/04_mosdepth_pre_merge_bwa/{{ref}}--{{patient_id}}-{{group}}-{{srx_id}}-{{layout}}/{{accession}}_trimmed_sorted_dedup", root = config["root"], rep_dir=config["reports_dir"]),
+        outdir = expand("{root}/{rep_dir}/04_mosdepth_pre_merge_bwa", root = config["root"], rep_dir=config["reports_dir"])
+    
+    shell:
+        '''
+        echo "making output directory" > {log}
+        mkdir -p {params.outdir}
+        echo "Running mosdepth on {input.bam}" >> {log}
+        mosdepth -x -Q {params.mapping_quality} {params.out_prefix} {input.bam}
+        echo "Done" >> {log}
+        '''
+
 # Bismark bam2nuc rule
 # Calculate nucleotide frequency report for deduplicated sequence files
 rule bismark_pre_merge_nuc_freq:
@@ -284,10 +360,16 @@ rule bismark_pre_merge_nuc_freq:
         echo "Done" >> {log}
         """
 
-
-# multiqc rule for 04 pre-merge reports
-rule multiqc_compile_reports_04:
-    input:
+#------------------------------------------------
+# MultiQC rule for 04_pre_merge reports
+#------------------------------------------------
+# Compliling a list of reports based on the alignment pathways in the config file
+# Bismark and Bwameth pathways both used
+if config["bismark"] == True and config["bwameth"]==True:
+    pre_merge_report_list = [
+        expand("{root}/{rep_dir}/03_bismark_bwt2/{pe.ref}--{pe.patient_id}-{pe.group}-{pe.srx_id}-{pe.layout}/{pe.accession}_trimmed_bismark_bt2_PE_report.txt", pe = sample_info_pe.itertuples(), root = config["root"], rep_dir=config["reports_dir"]), # PE bis alignment report
+        expand("{root}/{rep_dir}/03_bismark_bwt2/{se.ref}--{se.patient_id}-{se.group}-{se.srx_id}-{se.layout}/{se.accession}_trimmed_bismark_bt2_SE_report.txt", se = sample_info_se.itertuples(), root = config["root"], rep_dir=config["reports_dir"]), # SE bis alignment report
+        expand("{root}/{rep_dir}/03_bwameth/{sample.ref}--{sample.patient_id}-{sample.group}-{sample.srx_id}-{sample.layout}/{sample.accession}_trimmed_bwameth_report.txt", sample = sample_info.itertuples(), root = config["root"], rep_dir=config["reports_dir"]), # bwameth alignment report for PE and SE
         expand("{root}/{rep_dir}/04_bismark_deduplication/{sample.ref}--{sample.patient_id}-{sample.group}-{sample.srx_id}-{sample.layout}/{sample.accession}_bismark.deduplication_report.txt", sample = sample_info.itertuples(), root = config["root"], rep_dir=config["reports_dir"]),
         expand("{root}/{rep_dir}/04_sambamba_bwameth_dedup/{sample.ref}--{sample.patient_id}-{sample.group}-{sample.srx_id}-{sample.layout}-{sample.accession}.log", sample = sample_info.itertuples(), root = config["root"], rep_dir=config["reports_dir"]),
         expand("{root}/{rep_dir}/04_fastqc_pre_merge_bis/{sample.ref}--{sample.patient_id}-{sample.group}-{sample.srx_id}-{sample.layout}/{sample.accession}_bismark.deduplicated_fastqc.{suf}", sample = sample_info.itertuples(), root = config["root"], rep_dir = config["reports_dir"], suf=["html","zip"]),
@@ -298,12 +380,60 @@ rule multiqc_compile_reports_04:
         expand("{root}/{rep_dir}/04_feature_counts_bwa/{sample.ref}--{sample.patient_id}-{sample.group}-{sample.srx_id}-{sample.layout}/{sample.accession}_trimmed_sorted_dedup.featureCounts{suf}", sample = sample_info.itertuples(), root = config["root"], rep_dir=config["reports_dir"], suf=["", ".summary", ".jcounts"]),
         expand("{root}/{rep_dir}/04_samtools_pre_merge_bis/{sample.ref}--{sample.patient_id}-{sample.group}-{sample.srx_id}-{sample.layout}/{sample.accession}_bismark.deduplicated.bam.stats", sample = sample_info.itertuples(), root = config["root"], rep_dir=config["reports_dir"]),
         expand("{root}/{rep_dir}/04_samtools_pre_merge_bwa/{sample.ref}--{sample.patient_id}-{sample.group}-{sample.srx_id}-{sample.layout}/{sample.accession}_trimmed_sorted_dedup.bam.stats", sample = sample_info.itertuples(), root = config["root"], rep_dir=config["reports_dir"]),
+        expand("{root}/{rep_dir}/04_samtools_pre_merge_bis/{sample.ref}--{sample.patient_id}-{sample.group}-{sample.srx_id}-{sample.layout}/{sample.accession}_bismark.deduplicated.bam.flagstat", sample = sample_info.itertuples(), root = config["root"], rep_dir=config["reports_dir"]),
+        expand("{root}/{rep_dir}/04_samtools_pre_merge_bwa/{sample.ref}--{sample.patient_id}-{sample.group}-{sample.srx_id}-{sample.layout}/{sample.accession}_trimmed_sorted_dedup.bam.flagstat", sample = sample_info.itertuples(), root = config["root"], rep_dir=config["reports_dir"]),
+        expand("{root}/{rep_dir}/04_mosdepth_pre_merge_bis/{sample.ref}--{sample.patient_id}-{sample.group}-{sample.srx_id}-{sample.layout}/{sample.accession}_bismark.deduplicated_sorted.mosdepth.global.dist.txt", sample = sample_info.itertuples(), root = config["root"], rep_dir=config["reports_dir"]),
+        expand("{root}/{rep_dir}/04_mosdepth_pre_merge_bis/{sample.ref}--{sample.patient_id}-{sample.group}-{sample.srx_id}-{sample.layout}/{sample.accession}_bismark.deduplicated_sorted.per-base.bed.gz", sample = sample_info.itertuples(), root = config["root"], rep_dir=config["reports_dir"]), # produced unless --no-per-base specified
+        expand("{root}/{rep_dir}/04_mosdepth_pre_merge_bis/{sample.ref}--{sample.patient_id}-{sample.group}-{sample.srx_id}-{sample.layout}/{sample.accession}_bismark.deduplicated_sorted.per-base.bed.gz.csi", sample = sample_info.itertuples(), root = config["root"], rep_dir=config["reports_dir"]), # produced unless --no-per-base specified
+        expand("{root}/{rep_dir}/04_mosdepth_pre_merge_bis/{sample.ref}--{sample.patient_id}-{sample.group}-{sample.srx_id}-{sample.layout}/{sample.accession}_bismark.deduplicated_sorted.mosdepth.summary.txt", sample = sample_info.itertuples(), root = config["root"], rep_dir=config["reports_dir"]), # this named output is required for prefix parsing
+        expand("{root}/{rep_dir}/04_mosdepth_pre_merge_bwa/{sample.ref}--{sample.patient_id}-{sample.group}-{sample.srx_id}-{sample.layout}/{sample.accession}_trimmed_sorted_dedup.mosdepth.global.dist.txt", sample = sample_info.itertuples(), root = config["root"], rep_dir=config["reports_dir"]),
+        expand("{root}/{rep_dir}/04_mosdepth_pre_merge_bwa/{sample.ref}--{sample.patient_id}-{sample.group}-{sample.srx_id}-{sample.layout}/{sample.accession}_trimmed_sorted_dedup.per-base.bed.gz", sample = sample_info.itertuples(), root = config["root"], rep_dir=config["reports_dir"]), # produced unless --no-per-base specified
+        expand("{root}/{rep_dir}/04_mosdepth_pre_merge_bwa/{sample.ref}--{sample.patient_id}-{sample.group}-{sample.srx_id}-{sample.layout}/{sample.accession}_trimmed_sorted_dedup.per-base.bed.gz.csi", sample = sample_info.itertuples(), root = config["root"], rep_dir=config["reports_dir"]), # produced unless --no-per-base specified
+        expand("{root}/{rep_dir}/04_mosdepth_pre_merge_bwa/{sample.ref}--{sample.patient_id}-{sample.group}-{sample.srx_id}-{sample.layout}/{sample.accession}_trimmed_sorted_dedup.mosdepth.summary.txt", sample = sample_info.itertuples(), root = config["root"], rep_dir=config["reports_dir"]), # this named output is required for prefix parsing
+        expand("{root}/{rep_dir}/04_bismark_summary/{sample.ref}--{sample.patient_id}-{sample.group}-{sample.srx_id}-{sample.layout}/{sample.accession}_bismark.deduplicated.nucleotide_stats.txt", sample = sample_info.itertuples(), root = config["root"], rep_dir=config["reports_dir"]),
+    ]
+
+# Bismark pathway only
+# only add bismark pathway reports to the list
+if config["bismark"] == True and config["bwameth"]==False:
+    pre_merge_report_list = [
+        expand("{root}/{rep_dir}/03_bismark_bwt2/{pe.ref}--{pe.patient_id}-{pe.group}-{pe.srx_id}-{pe.layout}/{pe.accession}_trimmed_bismark_bt2_PE_report.txt", pe = sample_info_pe.itertuples(), root = config["root"], rep_dir=config["reports_dir"]), # PE bis alignment report
+        expand("{root}/{rep_dir}/03_bismark_bwt2/{se.ref}--{se.patient_id}-{se.group}-{se.srx_id}-{se.layout}/{se.accession}_trimmed_bismark_bt2_SE_report.txt", se = sample_info_se.itertuples(), root = config["root"], rep_dir=config["reports_dir"]), # SE bis alignment report
+        expand("{root}/{rep_dir}/04_bismark_deduplication/{sample.ref}--{sample.patient_id}-{sample.group}-{sample.srx_id}-{sample.layout}/{sample.accession}_bismark.deduplication_report.txt", sample = sample_info.itertuples(), root = config["root"], rep_dir=config["reports_dir"]),
+        expand("{root}/{rep_dir}/04_fastqc_pre_merge_bis/{sample.ref}--{sample.patient_id}-{sample.group}-{sample.srx_id}-{sample.layout}/{sample.accession}_bismark.deduplicated_fastqc.{suf}", sample = sample_info.itertuples(), root = config["root"], rep_dir = config["reports_dir"], suf=["html","zip"]),
+        # directory(expand("{root}/{rep_dir}/04_qualimap_bis/{sample.ref}--{sample.patient_id}-{sample.group}-{sample.srx_id}-{sample.layout}/{sample.accession}_pre_merge", sample = sample_info.itertuples(), root = config["root"], rep_dir=config["reports_dir"])),
+        expand("{root}/{rep_dir}/04_feature_counts_bis/{sample.ref}--{sample.patient_id}-{sample.group}-{sample.srx_id}-{sample.layout}/{sample.accession}__bismark_deduplicated.featureCounts{suf}", sample = sample_info.itertuples(), root = config["root"], rep_dir=config["reports_dir"], suf=["", ".summary", ".jcounts"]),
+        expand("{root}/{rep_dir}/04_samtools_pre_merge_bis/{sample.ref}--{sample.patient_id}-{sample.group}-{sample.srx_id}-{sample.layout}/{sample.accession}_bismark.deduplicated.bam.stats", sample = sample_info.itertuples(), root = config["root"], rep_dir=config["reports_dir"]),
+        expand("{root}/{rep_dir}/04_samtools_pre_merge_bis/{sample.ref}--{sample.patient_id}-{sample.group}-{sample.srx_id}-{sample.layout}/{sample.accession}_bismark.deduplicated.bam.flagstat", sample = sample_info.itertuples(), root = config["root"], rep_dir=config["reports_dir"]),
         expand("{root}/{rep_dir}/04_mosdepth_pre_merge_bis/{sample.ref}--{sample.patient_id}-{sample.group}-{sample.srx_id}-{sample.layout}/{sample.accession}_bismark.deduplicated_sorted.mosdepth.global.dist.txt", sample = sample_info.itertuples(), root = config["root"], rep_dir=config["reports_dir"]),
         expand("{root}/{rep_dir}/04_mosdepth_pre_merge_bis/{sample.ref}--{sample.patient_id}-{sample.group}-{sample.srx_id}-{sample.layout}/{sample.accession}_bismark.deduplicated_sorted.per-base.bed.gz", sample = sample_info.itertuples(), root = config["root"], rep_dir=config["reports_dir"]), # produced unless --no-per-base specified
         expand("{root}/{rep_dir}/04_mosdepth_pre_merge_bis/{sample.ref}--{sample.patient_id}-{sample.group}-{sample.srx_id}-{sample.layout}/{sample.accession}_bismark.deduplicated_sorted.per-base.bed.gz.csi", sample = sample_info.itertuples(), root = config["root"], rep_dir=config["reports_dir"]), # produced unless --no-per-base specified
         expand("{root}/{rep_dir}/04_mosdepth_pre_merge_bis/{sample.ref}--{sample.patient_id}-{sample.group}-{sample.srx_id}-{sample.layout}/{sample.accession}_bismark.deduplicated_sorted.mosdepth.summary.txt", sample = sample_info.itertuples(), root = config["root"], rep_dir=config["reports_dir"]), # this named output is required for prefix parsing
         expand("{root}/{rep_dir}/04_bismark_summary/{sample.ref}--{sample.patient_id}-{sample.group}-{sample.srx_id}-{sample.layout}/{sample.accession}_bismark.deduplicated.nucleotide_stats.txt", sample = sample_info.itertuples(), root = config["root"], rep_dir=config["reports_dir"]),
-        
+    ]
+
+# Bwameth pathway only
+# only add bwa pathway reports to the list
+if config["bismark"]==False and config["bwameth"]==True:
+    pre_merge_report_list = [
+        expand("{root}/{rep_dir}/03_bwameth/{sample.ref}--{sample.patient_id}-{sample.group}-{sample.srx_id}-{sample.layout}/{sample.accession}_trimmed_bwameth_report.txt", sample = sample_info.itertuples(), root = config["root"], rep_dir=config["reports_dir"]), # bwameth alignment report for PE and SE
+        expand("{root}/{rep_dir}/04_sambamba_bwameth_dedup/{sample.ref}--{sample.patient_id}-{sample.group}-{sample.srx_id}-{sample.layout}-{sample.accession}.log", sample = sample_info.itertuples(), root = config["root"], rep_dir=config["reports_dir"]),
+        expand("{root}/{rep_dir}/04_fastqc_pre_merge_bwa/{sample.ref}--{sample.patient_id}-{sample.group}-{sample.srx_id}-{sample.layout}/{sample.accession}_trimmed_sorted_dedup_fastqc.{suf}", sample = sample_info.itertuples(), root = config["root"], rep_dir = config["reports_dir"], suf=["html","zip"]),
+        # directory(expand("{root}/{rep_dir}/04_qualimap_bwa/{sample.ref}--{sample.patient_id}-{sample.group}-{sample.srx_id}-{sample.layout}/{sample.accession}_pre_merge", sample = sample_info.itertuples(), root = config["root"], rep_dir=config["reports_dir"])),
+        expand("{root}/{rep_dir}/04_feature_counts_bwa/{sample.ref}--{sample.patient_id}-{sample.group}-{sample.srx_id}-{sample.layout}/{sample.accession}_trimmed_sorted_dedup.featureCounts{suf}", sample = sample_info.itertuples(), root = config["root"], rep_dir=config["reports_dir"], suf=["", ".summary", ".jcounts"]),
+        expand("{root}/{rep_dir}/04_samtools_pre_merge_bwa/{sample.ref}--{sample.patient_id}-{sample.group}-{sample.srx_id}-{sample.layout}/{sample.accession}_trimmed_sorted_dedup.bam.stats", sample = sample_info.itertuples(), root = config["root"], rep_dir=config["reports_dir"]),
+        expand("{root}/{rep_dir}/04_samtools_pre_merge_bwa/{sample.ref}--{sample.patient_id}-{sample.group}-{sample.srx_id}-{sample.layout}/{sample.accession}_trimmed_sorted_dedup.bam.flagstat", sample = sample_info.itertuples(), root = config["root"], rep_dir=config["reports_dir"]),
+        expand("{root}/{rep_dir}/04_mosdepth_pre_merge_bwa/{sample.ref}--{sample.patient_id}-{sample.group}-{sample.srx_id}-{sample.layout}/{sample.accession}_trimmed_sorted_dedup.mosdepth.global.dist.txt", sample = sample_info.itertuples(), root = config["root"], rep_dir=config["reports_dir"]),
+        expand("{root}/{rep_dir}/04_mosdepth_pre_merge_bwa/{sample.ref}--{sample.patient_id}-{sample.group}-{sample.srx_id}-{sample.layout}/{sample.accession}_trimmed_sorted_dedup.per-base.bed.gz", sample = sample_info.itertuples(), root = config["root"], rep_dir=config["reports_dir"]), # produced unless --no-per-base specified
+        expand("{root}/{rep_dir}/04_mosdepth_pre_merge_bwa/{sample.ref}--{sample.patient_id}-{sample.group}-{sample.srx_id}-{sample.layout}/{sample.accession}_trimmed_sorted_dedup.per-base.bed.gz.csi", sample = sample_info.itertuples(), root = config["root"], rep_dir=config["reports_dir"]), # produced unless --no-per-base specified
+        expand("{root}/{rep_dir}/04_mosdepth_pre_merge_bwa/{sample.ref}--{sample.patient_id}-{sample.group}-{sample.srx_id}-{sample.layout}/{sample.accession}_trimmed_sorted_dedup.mosdepth.summary.txt", sample = sample_info.itertuples(), root = config["root"], rep_dir=config["reports_dir"]) # this named output is required for prefix parsing
+
+    ]
+
+# multiqc rule for 04 pre-merge reports
+rule multiqc_compile_reports_04:
+    input:
+        pre_merge_report_list
     output:
         file = expand("{root}/{rep_dir}/summary/04_pre_merge_multiqc.html", root = config["root"], rep_dir=config["reports_dir"]),
         input_list = expand("{root}/{rep_dir}/summary/04_qc_report_list.txt", root = config["root"], rep_dir=config["reports_dir"]),
@@ -315,7 +445,7 @@ rule multiqc_compile_reports_04:
     params:
         output_filename = "04_pre_merge_multiqc", # Required: do not change without adjusting the rule output
         outdir = config["root"] + "/" + config["reports_dir"] + "/summary", # Required: do not change without adjusting the rule output
-        comment = "Multiqc report for trimmed and deduplicated reads before merging. Includes reports from fastqc, . Reports compiled by snakemake DMR_workflow pipeline.", # Optional: comment for multiqc report (can be changed freely)
+        comment = "Multiqc report for trimmed and deduplicated reads before merging. Includes reports from fastqc, mosdepth, featurecounts, samtools, deduplication, and alignment. Reports compiled by snakemake DMR_workflow pipeline.", # Optional: comment for multiqc report (can be changed freely)
         report_title = "04 Pre-merge Sequence QC Reports", # Optional: title for multiqc report (can be changed freely)
         extra = "--verbose --fullnames --dirs --dirs-depth 3"  # Optional: extra parameters for multiqc (can be changed freely)
     shell:
@@ -341,7 +471,7 @@ rule multiqc_compile_reports_04:
         """
 
 
-# #ADD Bismarl report and multiqc compile rule
+# #ADD Bismarl report 
 
 # # rule bismark_report_se:
 # #     input:
