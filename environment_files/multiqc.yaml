@@ -1,0 +1,6 @@
+name: test-multiqc
+channels:
+  - conda-forge
+  - bioconda
+dependencies:
+  - bioconda::multiqc=1.25.1
