@@ -366,9 +366,7 @@ rule bismark_post_merge_nuc_freq:
 #------------------------------------------------
 # MultiQC rule for 06_post_merge reports
 #------------------------------------------------
-# compliling a list of reports based on the alignment pathways in the config file
-configfile: "../../config.yaml"
-
+# Compliling a list of reports based on the alignment pathways in the config file
 # Bismark and Bwameth pathways both used
 if config["bismark"] == True and config["bwameth"]==True:
     post_merge_report_list = [
