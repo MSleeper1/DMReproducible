@@ -80,6 +80,10 @@ trim_galore_se:
     time: 03:00:00
     mem_mb: 15000
 
+trim_galore_pe:
+    time: 03:00:00
+    mem_mb: 15000
+
 # 03 mapping rules
 bismark_mapping_se:
     time: 0-20:00:00
