@@ -13,7 +13,7 @@ rule get_samples_se:
         "../../environment_files/sra-download.yaml"
 
     params:
-        temp_dir = expand("{root}/{data_dir}/temp/get_samples_se-{{ref}}--{{patient_id}}-{{group}}-{{srx_id}}-{{layout}}", root = config["root"], data_dir = config["data_dir"]),
+        temp_dir = expand("{root}/{data_dir}/temp/get_samples_se-{{ref}}--{{patient_id}}-{{group}}-{{srx_id}}-{{layout}}-{{accession}}", root = config["root"], data_dir = config["data_dir"]),
         output_dir = expand("{root}/{data_dir}/01_raw_sequence_files/{{ref}}--{{patient_id}}-{{group}}-{{srx_id}}-{{layout}}", root = config["root"], data_dir = config["data_dir"])
 
     wildcard_constraints:
@@ -44,7 +44,7 @@ rule get_samples_pe:
         "../../environment_files/sra-download.yaml"
 
     params:
-        temp_dir = expand("{root}/{data_dir}/temp/get_samples_se-{{ref}}--{{patient_id}}-{{group}}-{{srx_id}}-{{layout}}", root = config["root"], data_dir = config["data_dir"]),
+        temp_dir = expand("{root}/{data_dir}/temp/get_samples_se-{{ref}}--{{patient_id}}-{{group}}-{{srx_id}}-{{layout}}-{{accession}}", root = config["root"], data_dir = config["data_dir"]),
         output_dir = expand("{root}/{data_dir}/01_raw_sequence_files/{{ref}}--{{patient_id}}-{{group}}-{{srx_id}}-{{layout}}", root = config["root"], data_dir = config["data_dir"])
 
     wildcard_constraints:
@@ -54,10 +54,10 @@ rule get_samples_pe:
         """
         mkdir -p {params.output_dir} 
         mkdir -p {params.temp_dir} 
-        echo "downloading {wildcards.accession} to {params.output_dir}"
-        fasterq-dump --temp {params.temp_dir} -O {params.output_dir} {wildcards.accession} > {log} 2>&1
+        echo "downloading {wildcards.accession} to {params.output_dir}" > {log}
+        fasterq-dump --temp {params.temp_dir} -O {params.output_dir} {wildcards.accession} >> {log} 2>&1
         echo "done"
-        echo "removing temp directory"
+        echo "removing temp directory" >> {log}
         rm -rf {params.temp_dir}
-        echo "done"
+        echo "done" >> {log}
         """
