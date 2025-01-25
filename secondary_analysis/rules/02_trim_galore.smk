@@ -58,13 +58,13 @@ rule trim_galore_pe:
         r2 = expand("{root}/{data_dir}/01_raw_sequence_files/{{ref}}--{{patient_id}}-{{group}}-{{srx_id}}-{{layout}}/{{accession}}_2.fastq", root = config["root"], data_dir=config["data_dir"])
 
     output:
-        trimmed_fq = expand("{root}/{data_dir}/02_trimmed_trim_galore/{{ref}}--{{patient_id}}-{{group}}-{{srx_id}}-{{layout}}/{{accession}}_{read}_trimmed.fq", root = config["root"], data_dir=config["data_dir"], read=["1", "2"]),
-        fastqc_reports = expand("{root}/{rep_dir}/02_fastqc_post_trim/{{ref}}--{{patient_id}}-{{group}}-{{srx_id}}-{{layout}}/{{accession}}_{read}_trimmed_fastqc.{suf}", root = config["root"], rep_dir=config["reports_dir"], read=["1", "2"], suf=["html", "zip"]),
+        trimmed_fq = expand("{root}/{data_dir}/02_trimmed_trim_galore/{{ref}}--{{patient_id}}-{{group}}-{{srx_id}}-{{layout}}/{{accession}}_{read}_val_{read}.fq", root = config["root"], data_dir=config["data_dir"], read=["1", "2"]),
+        fastqc_reports = expand("{root}/{rep_dir}/02_fastqc_post_trim/{{ref}}--{{patient_id}}-{{group}}-{{srx_id}}-{{layout}}/{{accession}}_{read}_val_{read}_fastqc.{suf}", root = config["root"], rep_dir=config["reports_dir"], read=["1", "2"], suf=["html", "zip"]),
         trim_reports = expand("{root}/{rep_dir}/02_trim_galore/{{ref}}--{{patient_id}}-{{group}}-{{srx_id}}-{{layout}}/{{accession}}_{read}.fastq_trimming_report.txt", root = config["root"], rep_dir=config["reports_dir"], read=["1", "2"])
-
+        
     log:
-        stdout = "logs/secondary_rules/02_trim_galore_se/02_trim_galore_se-{ref}--{patient_id}-{group}-{srx_id}-{layout}-{accession}.out",
-        stderr = "logs/secondary_rules/02_trim_galore_se/02_trim_galore_se-{ref}--{patient_id}-{group}-{srx_id}-{layout}-{accession}.err"
+        stdout = "logs/secondary_rules/02_trim_galore_pe/02_trim_galore_pe-{ref}--{patient_id}-{group}-{srx_id}-{layout}-{accession}.out",
+        stderr = "logs/secondary_rules/02_trim_galore_pe/02_trim_galore_pe-{ref}--{patient_id}-{group}-{srx_id}-{layout}-{accession}.err"
 
     # shadow: 
     #     "shallow"
@@ -74,7 +74,7 @@ rule trim_galore_pe:
 
     params:
         output_dir = expand("{root}/{data_dir}/02_trimmed_trim_galore/{{ref}}--{{patient_id}}-{{group}}-{{srx_id}}-{{layout}}", root = config["root"], data_dir=config["data_dir"]),  # trimmed files and reports will be saved in this directory
-        temp_fastqc_reports = expand("{root}/{data_dir}/02_trimmed_trim_galore/{{ref}}--{{patient_id}}-{{group}}-{{srx_id}}-{{layout}}/{{accession}}_{read}_trimmed_fastqc.{suf}", root = config["root"], data_dir=config["data_dir"], read=["1", "2"], suf=["html", "zip"]),  # temporary fastqc reports will be saved in this directory by trim galore but moved to a report directory after
+        temp_fastqc_reports = expand("{root}/{data_dir}/02_trimmed_trim_galore/{{ref}}--{{patient_id}}-{{group}}-{{srx_id}}-{{layout}}/{{accession}}_{read}_val_{read}_fastqc.{suf}", root = config["root"], data_dir=config["data_dir"], read=["1", "2"], suf=["html", "zip"]),  # temporary fastqc reports will be saved in this directory by trim galore but moved to a report directory after
         fastqc_rep_dir = expand("{root}/{rep_dir}/02_fastqc_post_trim/{{ref}}--{{patient_id}}-{{group}}-{{srx_id}}-{{layout}}", root = config["root"], rep_dir=config["reports_dir"]),  # fastqc reports will be moved to this directory
         temp_trim_reports = expand("{root}/{data_dir}/02_trimmed_trim_galore/{{ref}}--{{patient_id}}-{{group}}-{{srx_id}}-{{layout}}/{{accession}}_{read}.fastq_trimming_report.txt", root = config["root"], data_dir=config["data_dir"], read=["1", "2"]),  # temporary trim reports will be saved in this directory by trim galore but moved to a report directory after
         trim_rep_dir = expand("{root}/{rep_dir}/02_trim_galore/{{ref}}--{{patient_id}}-{{group}}-{{srx_id}}-{{layout}}", root = config["root"], rep_dir=config["reports_dir"]),  # trim reports will be moved to this directory
@@ -104,7 +104,7 @@ rule trim_galore_pe:
 rule multiqc_compile_reports_02:
     input:
         expand("{root}/{rep_dir}/02_fastqc_post_trim/{se.ref}--{se.patient_id}-{se.group}-{se.srx_id}-{se.layout}/{se.accession}_trimmed_fastqc.{suf}", root = config["root"], rep_dir=config["reports_dir"], se=sample_info_se.itertuples(), suf=["html","zip"]), 
-        expand("{root}/{rep_dir}/02_fastqc_post_trim/{pe.ref}--{pe.patient_id}-{pe.group}-{pe.srx_id}-{pe.layout}/{pe.accession}_{read}_trimmed_fastqc.{suf}", root = config["root"], rep_dir=config["reports_dir"], pe=sample_info_pe.itertuples(), read=["1", "2"], suf=["html", "zip"]), 
+        expand("{root}/{rep_dir}/02_fastqc_post_trim/{pe.ref}--{pe.patient_id}-{pe.group}-{pe.srx_id}-{pe.layout}/{pe.accession}_{read}_val_{read}_fastqc.{suf}", root = config["root"], rep_dir=config["reports_dir"], pe=sample_info_pe.itertuples(), read=["1", "2"], suf=["html", "zip"]), 
         expand("{root}/{rep_dir}/02_trim_galore/{se.ref}--{se.patient_id}-{se.group}-{se.srx_id}-{se.layout}/{se.accession}.fastq_trimming_report.txt", root = config["root"], se=sample_info_se.itertuples(), rep_dir=config["reports_dir"]), 
         expand("{root}/{rep_dir}/02_trim_galore/{pe.ref}--{pe.patient_id}-{pe.group}-{pe.srx_id}-{pe.layout}/{pe.accession}_{read}.fastq_trimming_report.txt", root = config["root"], pe=sample_info_pe.itertuples(), rep_dir=config["reports_dir"], read=["1", "2"])
 
