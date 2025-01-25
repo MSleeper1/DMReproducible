@@ -46,8 +46,8 @@ rule bwameth_mapping_se:
 # bwameth_mapping_pe: align paired-end reads to reference genome using bwameth
 rule bwameth_mapping_pe:
     input:
-        read_1 = expand("{root}/{data_dir}/02_trimmed_trim_galore/{{ref}}--{{patient_id}}-{{group}}-{{srx_id}}-{{layout}}/{{accession}}_1_trimmed.fq", root = config["root"], data_dir=config["data_dir"]),
-        read_2 = expand("{root}/{data_dir}/02_trimmed_trim_galore/{{ref}}--{{patient_id}}-{{group}}-{{srx_id}}-{{layout}}/{{accession}}_2_trimmed.fq", root = config["root"], data_dir=config["data_dir"]),
+        read_1 = expand("{root}/{data_dir}/02_trimmed_trim_galore/{{ref}}--{{patient_id}}-{{group}}-{{srx_id}}-{{layout}}/{{accession}}_1_val_1.fq", root = config["root"], data_dir=config["data_dir"]),
+        read_2 = expand("{root}/{data_dir}/02_trimmed_trim_galore/{{ref}}--{{patient_id}}-{{group}}-{{srx_id}}-{{layout}}/{{accession}}_2_val_2.fq", root = config["root"], data_dir=config["data_dir"]),
         index = expand("{root}/{genomes_dir}/{genome}/bwameth/{fasta}.fa.gz", root = config["root"], genomes_dir = config["genomes_dir"], genome = config["ref"]["genome"], fasta = config["ref"]["fasta"])
 
     output:
