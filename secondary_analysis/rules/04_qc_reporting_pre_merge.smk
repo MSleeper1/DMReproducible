@@ -141,8 +141,8 @@ rule qualimap_pre_merge_bwa:
 
     output:
         directory(expand("{root}/{rep_dir}/04_qualimap_bwa/{{ref}}--{{patient_id}}-{{group}}-{{srx_id}}-{{layout}}/{{accession}}_pre_merge", root = config["root"], rep_dir=config["reports_dir"])),
-        expand("{root}/{rep_dir}/04_qualimap_bwa/{{ref}}--{{patient_id}}-{{group}}-{{srx_id}}-{{layout}}/{{accession}}_pre_merge/genome_results.txt", root = config["root"], rep_dir=config["reports_dir"]),
-        directory(expand("{root}/{rep_dir}/04_qualimap_bwa/{{ref}}--{{patient_id}}-{{group}}-{{srx_id}}-{{layout}}/{{accession}}_pre_merge/raw_data_qualimapReport", root = config["root"], rep_dir=config["reports_dir"]))
+        # expand("{root}/{rep_dir}/04_qualimap_bwa/{{ref}}--{{patient_id}}-{{group}}-{{srx_id}}-{{layout}}/{{accession}}_pre_merge/genome_results.txt", root = config["root"], rep_dir=config["reports_dir"]),
+        # directory(expand("{root}/{rep_dir}/04_qualimap_bwa/{{ref}}--{{patient_id}}-{{group}}-{{srx_id}}-{{layout}}/{{accession}}_pre_merge/raw_data_qualimapReport", root = config["root"], rep_dir=config["reports_dir"]))
 
     log:
         "logs/secondary_rules/04_qualimap_pre_merge_bwa/04_qualimap_pre_merge_bwa-{ref}--{patient_id}-{group}-{srx_id}-{layout}-{accession}.log"
@@ -151,16 +151,14 @@ rule qualimap_pre_merge_bwa:
         "../../environment_files/qualimap.yaml"
 
     params:
-        temp_out = expand("{root}/{rep_dir}/04_qualimap_bwa/temp/{{ref}}--{{patient_id}}-{{group}}-{{srx_id}}-{{layout}}-{{accession}}_pre_merge", root = config["root"], rep_dir=config["reports_dir"])
+        out_dir = expand("{root}/{rep_dir}/04_qualimap_bwa/{{ref}}--{{patient_id}}-{{group}}-{{srx_id}}-{{layout}}/{{accession}}_pre_merge", root = config["root"], rep_dir=config["reports_dir"])
 
     shell:
         """
+        echo "making output directory" > {log}
+        mkdir -p {params.out_dir}
         echo "Running qualimap on {input.bwa_bam}" > {log}
-        qualimap bamqc -bam {input.bwa_bam} -c -sd -os -gd hg38 -gff {input.gtf} --java-mem-size=4G --outdir {params.temp_out} >> {log} 2>&1
-        echo "Moving qualimap output to reports directory" >> {log}
-        mv -f -v {params.temp_out} {output} >> {log} 2>&1
-        echo "removing temp output directory" >> {log}
-        rm -rf -v {params.temp_out} >> {log} 2>&1
+        qualimap bamqc -bam {input.bwa_bam} -c -sd -os -gd hg38 -gff {input.gtf} --java-mem-size=7G --outdir {params.out_dir} >> {log} 2>&1
         echo "Done" >> {log}
         """
 
@@ -172,8 +170,8 @@ rule qualimap_pre_merge_bis:
     
     output:
         directory(expand("{root}/{rep_dir}/04_qualimap_bis/{{ref}}--{{patient_id}}-{{group}}-{{srx_id}}-{{layout}}/{{accession}}_pre_merge", root = config["root"], rep_dir=config["reports_dir"])),
-        expand("{root}/{rep_dir}/04_qualimap_bis/{{ref}}--{{patient_id}}-{{group}}-{{srx_id}}-{{layout}}/{{accession}}_pre_merge/genome_results.txt", root = config["root"], rep_dir=config["reports_dir"]),
-        directory(expand("{root}/{rep_dir}/04_qualimap_bis/{{ref}}--{{patient_id}}-{{group}}-{{srx_id}}-{{layout}}/{{accession}}_pre_merge/raw_data_qualimapReport", root = config["root"], rep_dir=config["reports_dir"]))
+        # expand("{root}/{rep_dir}/04_qualimap_bis/{{ref}}--{{patient_id}}-{{group}}-{{srx_id}}-{{layout}}/{{accession}}_pre_merge/genome_results.txt", root = config["root"], rep_dir=config["reports_dir"]),
+        # directory(expand("{root}/{rep_dir}/04_qualimap_bis/{{ref}}--{{patient_id}}-{{group}}-{{srx_id}}-{{layout}}/{{accession}}_pre_merge/raw_data_qualimapReport", root = config["root"], rep_dir=config["reports_dir"]))
 
     log:
         "logs/secondary_rules/04_qualimap_pre_merge_bis/04_qualimap_pre_merge_bis-{ref}--{patient_id}-{group}-{srx_id}-{layout}-{accession}.log"
@@ -182,17 +180,14 @@ rule qualimap_pre_merge_bis:
         "../../environment_files/qualimap.yaml"
 
     params:
-        temp_out = expand("{root}/{rep_dir}/04_qualimap_bis/temp/{{ref}}--{{patient_id}}-{{group}}-{{srx_id}}-{{layout}}-{{accession}}_pre_merge", root = config["root"], rep_dir=config["reports_dir"])
+        out_dir = expand("{root}/{rep_dir}/04_qualimap_bis/{{ref}}--{{patient_id}}-{{group}}-{{srx_id}}-{{layout}}/{{accession}}_pre_merge", root = config["root"], rep_dir=config["reports_dir"])
 
     shell:
         """
-        mkdir -p {params.temp_out}
+        echo "making output directory" > {log}
+        mkdir -p {params.out_dir}
         echo "Running qualimap on {input.bis_bam}" > {log}
-        qualimap bamqc -bam {input.bis_bam} -c -sd -os -gd hg38 -gff {input.gtf} --java-mem-size=4G --outdir {params.temp_out} >> {log} 2>&1
-        echo "Moving qualimap output to reports directory" >> {log}
-        mv -f -v {params.temp_out} {output} >> {log} 2>&1
-        echo "removing temp output directory" >> {log}
-        rm -rf -v {params.temp_out} >> {log} 2>&1
+        qualimap bamqc -bam {input.bis_bam} -c -sd -os -gd hg38 -gff {input.gtf} --java-mem-size=7G --outdir {params.out_dir} >> {log} 2>&1
         echo "Done" >> {log}
         """
 
@@ -201,7 +196,7 @@ rule qualimap_pre_merge_bis:
 # FeatureCounts is a program that counts the number of reads that map to each feature in a GTF file
 # input.sam can be a bam file but must be called input.sam to function with wrapper
 
-rule feature_counts_pre_merge_bwa:
+rule feature_counts_pre_merge_bwa_se:
     input:
         sam = expand("{root}/{data_dir}/04_deduped_sambamba/{{ref}}--{{patient_id}}-{{group}}-{{srx_id}}-{{layout}}/{{accession}}_trimmed_sorted_dedup.bam", root = config["root"], data_dir = config["data_dir"]),
         annotation = expand("{root}/{genomes_dir}/{genome}/{gtf}.gtf", root = config["root"], genomes_dir = config["genomes_dir"], genome = config["ref"]["genome"], gtf = config["ref"]["gtf"]),
@@ -221,6 +216,9 @@ rule feature_counts_pre_merge_bwa:
     conda:
         "../../environment_files/feature_counts.yaml"
 
+    wildcard_constraints:
+        layout = "se"
+
     params:
         tmp_dir="",   # implicitly sets the --tmpDir flag
         r_path="",    # implicitly sets the --Rpath flag
@@ -229,7 +227,7 @@ rule feature_counts_pre_merge_bwa:
     wrapper:
         "0.72.0/bio/subread/featurecounts"
 
-rule feature_counts_pre_merge_bis:
+rule feature_counts_pre_merge_bis_se:
     input:
         sam = expand("{root}/{data_dir}/04_bismark_deduped/{{ref}}--{{patient_id}}-{{group}}-{{srx_id}}-{{layout}}/{{accession}}_bismark.deduplicated.bam", root = config["root"], data_dir=config["data_dir"]),
         annotation = expand("{root}/{genomes_dir}/{genome}/{gtf}.gtf", root = config["root"], genomes_dir = config["genomes_dir"], genome = config["ref"]["genome"], gtf = config["ref"]["gtf"]),
@@ -249,6 +247,9 @@ rule feature_counts_pre_merge_bis:
     conda:
         "../../environment_files/feature_counts.yaml"
 
+    wildcard_constraints:
+        layout = "se"
+
     params:
         tmp_dir="",   # implicitly sets the --tmpDir flag
         r_path="",    # implicitly sets the --Rpath flag
@@ -257,6 +258,68 @@ rule feature_counts_pre_merge_bis:
     wrapper:
         "0.72.0/bio/subread/featurecounts"
 
+
+rule feature_counts_pre_merge_bwa_pe:
+    input:
+        sam = expand("{root}/{data_dir}/04_deduped_sambamba/{{ref}}--{{patient_id}}-{{group}}-{{srx_id}}-{{layout}}/{{accession}}_trimmed_sorted_dedup.bam", root = config["root"], data_dir = config["data_dir"]),
+        annotation = expand("{root}/{genomes_dir}/{genome}/{gtf}.gtf", root = config["root"], genomes_dir = config["genomes_dir"], genome = config["ref"]["genome"], gtf = config["ref"]["gtf"]),
+        # optional input
+        # chr_names="",           # implicitly sets the -A flag
+        fasta=expand("{root}/{genomes_dir}/{genome}/{fasta}.fa", root = config["root"], genomes_dir = config["genomes_dir"], genome = config["ref"]["genome"], fasta = config["ref"]["fasta"]) # implicitly sets the -G flag
+    
+    output:
+        expand("{root}/{rep_dir}/04_feature_counts_bwa/{{ref}}--{{patient_id}}-{{group}}-{{srx_id}}-{{layout}}/{{accession}}_trimmed_sorted_dedup.featureCounts{suf}", root = config["root"], rep_dir=config["reports_dir"], suf=["", ".summary", ".jcounts"])
+
+    log:
+        "logs/secondary_rules/04_feature_counts_bwa/04_feature_counts_bwa-{ref}--{patient_id}-{group}-{srx_id}-{layout}-{accession}.log"
+
+    threads:
+        3
+
+    conda:
+        "../../environment_files/feature_counts.yaml"
+
+    wildcard_constraints:
+        layout = "pe"
+
+    params:
+        tmp_dir="",   # implicitly sets the --tmpDir flag
+        r_path="",    # implicitly sets the --Rpath flag
+        extra="-O --fracOverlap 0.2 -f -p"
+
+    wrapper:
+        "0.72.0/bio/subread/featurecounts"
+
+rule feature_counts_pre_merge_bis_pe:
+    input:
+        sam = expand("{root}/{data_dir}/04_bismark_deduped/{{ref}}--{{patient_id}}-{{group}}-{{srx_id}}-{{layout}}/{{accession}}_bismark.deduplicated.bam", root = config["root"], data_dir=config["data_dir"]),
+        annotation = expand("{root}/{genomes_dir}/{genome}/{gtf}.gtf", root = config["root"], genomes_dir = config["genomes_dir"], genome = config["ref"]["genome"], gtf = config["ref"]["gtf"]),
+        # optional input
+        # chr_names="",           # implicitly sets the -A flag
+        fasta=expand("{root}/{genomes_dir}/{genome}/{fasta}.fa", root = config["root"], genomes_dir = config["genomes_dir"], genome = config["ref"]["genome"], fasta = config["ref"]["fasta"]) # implicitly sets the -G flag
+
+    output:
+        expand("{root}/{rep_dir}/04_feature_counts_bis/{{ref}}--{{patient_id}}-{{group}}-{{srx_id}}-{{layout}}/{{accession}}__bismark_deduplicated.featureCounts{suf}", root = config["root"], rep_dir=config["reports_dir"], suf=["", ".summary", ".jcounts"])
+
+    log:
+        "logs/secondary_rules/04_feature_counts_bis/04_feature_counts_bis-{ref}--{patient_id}-{group}-{srx_id}-{layout}-{accession}.log"
+
+    threads:
+        3
+
+    conda:
+        "../../environment_files/feature_counts.yaml"
+
+    wildcard_constraints:
+        layout = "pe"
+
+    params:
+        tmp_dir="",   # implicitly sets the --tmpDir flag
+        r_path="",    # implicitly sets the --Rpath flag
+        extra="-O --fracOverlap 0.2 -f -p"
+
+    wrapper:
+        "0.72.0/bio/subread/featurecounts"
 
 ### MOSDEPTH RULE ###
 # mosdepth is a program that calculates the depth of coverage for sequence files
