@@ -55,7 +55,7 @@ rule bwameth_mapping_pe:
         bwa_report = expand("{root}/{rep_dir}/03_bwameth/{{ref}}--{{patient_id}}-{{group}}-{{srx_id}}-{{layout}}/{{accession}}_trimmed_bwameth_report.txt", root = config["root"], rep_dir=config["reports_dir"])
          
     log:
-        "logs/secondary_rules/03_bwameth_mapping_pe_pipe/03_bwameth_mapping_se_pipe-{ref}--{patient_id}-{group}-{layout}-{srx_id}-{accession}.log"
+        "logs/secondary_rules/03_bwameth_mapping_pe/03_bwameth_mapping_pe-{ref}--{patient_id}-{group}-{layout}-{srx_id}-{accession}.log"
 
     conda:
         "../../environment_files/bwameth.yaml"
