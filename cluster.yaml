@@ -86,22 +86,22 @@ trim_galore_pe:
 
 # 03 mapping rules
 bismark_mapping_se:
-    time: 0-20:00:00
+    time: 3-10:00:00
     mem_mb: 20000
 
 bismark_mapping_pe:
-    time: 0-20:00:00
-    mem_mb: 20000
+    time: 3-10:00:00
+    mem_mb: 40000
 
 bwameth_mapping_se:
-    time: 0-20:00:00
+    time: 2-10:00:00
     mem_mb: 20000
     cpus-per-task: 4
 
 bwameth_mapping_pe:
-    time: 0-20:00:00
-    mem_mb: 20000
-    cpus-per-task: 4
+    time: 3-10:00:00
+    mem_mb: 40000
+    cpus-per-task: 8
 
 # 04 and 06 deduplication rules
 sambamba_sort_index_markdups_pre_merge_bwa:
@@ -114,11 +114,11 @@ sambamba_sort_index_markdups_post_merge_bwa:
     mem_mb: 8000
     cpus-per-task: 4
 
-deduplicate_bismark_pre_merge:
+bismark_deduplicate_pre_merge:
     time: 0-10:00:00
     mem_mb: 8000
 
-deduplicate_bismark_post_merge:
+bismark_deduplicate_post_merge:
     time: 0-10:00:00
     mem_mb: 8000
 
@@ -174,22 +174,42 @@ bismark_post_merge_nuc_freq:
     mem_mb: 8000
     cpus-per-task: 4
 
-feature_counts_pre_merge_bwa:
+feature_counts_pre_merge_bwa_se:
     time: 0-10:00:00
     mem_mb: 8000
     cpus-per-task: 4
 
-feature_counts_pre_merge_bis:
+feature_counts_pre_merge_bis_se:
     time: 0-10:00:00
     mem_mb: 8000
     cpus-per-task: 4
 
-feature_counts_post_merge_bwa:
+feature_counts_pre_merge_bwa_pe:
     time: 0-10:00:00
     mem_mb: 8000
     cpus-per-task: 4
 
-feature_counts_post_merge_bis:
+feature_counts_pre_merge_bis_pe:
+    time: 0-10:00:00
+    mem_mb: 8000
+    cpus-per-task: 4
+
+feature_counts_post_merge_bwa_pe:
+    time: 0-10:00:00
+    mem_mb: 8000
+    cpus-per-task: 4
+
+feature_counts_post_merge_bis_pe:
+    time: 0-10:00:00
+    mem_mb: 8000
+    cpus-per-task: 4
+
+feature_counts_post_merge_bwa_se:
+    time: 0-10:00:00
+    mem_mb: 8000
+    cpus-per-task: 4
+
+feature_counts_post_merge_bis_se:
     time: 0-10:00:00
     mem_mb: 8000
     cpus-per-task: 4
