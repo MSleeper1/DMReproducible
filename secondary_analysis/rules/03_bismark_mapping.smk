@@ -71,9 +71,9 @@ rule bismark_mapping_pe:
         bismark_idx_dir = expand("{root}/{genomes_dir}/{genome}/bismark", root = config["root"], genomes_dir = config["genomes_dir"], genome = config["ref"]["genome"]),
         temp_dir = expand("{root}/{data_dir}/temp/bismark/{{ref}}--{{accession}}", root = config["root"], data_dir=config["data_dir"]),
         report_dir = expand("{root}/{rep_dir}/03_bismark_bwt2/{{ref}}--{{patient_id}}-{{group}}-{{srx_id}}-{{layout}}", root = config["root"], rep_dir=config["reports_dir"]),
-        temp_bam_file = "{accession}_1_val_1_bismark_bt2_pe.bam"
-        temp_report_file = "{accession}_1_val_1_bismark_bt2_PE_report.txt"
-        output_bam_file = "{accession}_trimmed_bismark_bt2.bam"
+        temp_bam_file = "{accession}_1_val_1_bismark_bt2_pe.bam",
+        temp_report_file = "{accession}_1_val_1_bismark_bt2_PE_report.txt",
+        output_bam_file = "{accession}_trimmed_bismark_bt2.bam",
         output_report_file = "{accession}_trimmed_bismark_bt2_PE_report.txt"
 
     wildcard_constraints:
@@ -89,9 +89,9 @@ rule bismark_mapping_pe:
         bismark --bowtie2 --temp_dir {params.temp_dir} --output_dir {params.output_dir} {params.bismark_idx_dir} -1 {input.r1} -2 {input.r2} >> {log} 2>>{log}
         echo "done with mapping"
         echo "renaming {params.output_dir}/{params.temp_bam_file} to {params.output_dir}/{params.output_bam_file}" >> {log}
-        mv -f -v --target-directory={params.output_dir} {params.output_dir}/{params.temp_bam_file} {params.output_dir}/{params.output_bam_file} 2>>{log}
+        mv -f -v {params.output_dir}/{params.temp_bam_file} {params.output_dir}/{params.output_bam_file} 2>>{log}
         echo "renaming {params.output_dir}/{params.temp_report_file} to {params.output_dir}/{params.output_report_file}" >> {log}
-        mv -f -v --target-directory={params.output_dir} {params.output_dir}/{params.temp_report_file} {params.output_dir}/{params.output_report_file} 2>>{log}
+        mv -f -v {params.output_dir}/{params.temp_report_file} {params.output_dir}/{params.output_report_file} 2>>{log}
         echo "making report directory: {params.report_dir}" >> {log}
         mkdir -p {params.report_dir} 2>>{log}
         echo "moving {params.output_dir}/{params.temp_report_file} to {params.report_dir}" >> {log}
