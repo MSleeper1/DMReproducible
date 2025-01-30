@@ -79,13 +79,13 @@ rule bismark_methylation_extractor_pe:
         ucsc_bedgraph = expand("{root}/{data_dir}/07_bismark_methyl_extractor/{{ref}}--{{patient_id}}-{{group}}-{{srx_id}}-{{layout}}.bedGraph_UCSC.bedGraph.gz", root = config["root"], data_dir=config["data_dir"]),
 
         # Primary output files: methylation status at each read cytosine position: (extremely large)
-        read_base_meth_state_cpg = expand("{root}/{data_dir}/07_bismark_methyl_extractor/CpG_context_{{ref}}--{{patient_id}}-{{group}}-{{srx_id}}-{{layout}}.txt.gz", root = config["root"], data_dir=config["data_dir"]),
+        # read_base_meth_state_cpg = expand("{root}/{data_dir}/07_bismark_methyl_extractor/CpG_context_{{ref}}--{{patient_id}}-{{group}}-{{srx_id}}-{{layout}}.txt.gz", root = config["root"], data_dir=config["data_dir"]),
         cpg_ot = expand("{root}/{data_dir}/07_bismark_methyl_extractor/CpG_OT_{{ref}}--{{patient_id}}-{{group}}-{{srx_id}}-{{layout}}.txt.gz", root = config["root"], data_dir=config["data_dir"]),
         cpg_ob = expand("{root}/{data_dir}/07_bismark_methyl_extractor/CpG_OB_{{ref}}--{{patient_id}}-{{group}}-{{srx_id}}-{{layout}}.txt.gz", root = config["root"], data_dir=config["data_dir"]),
 
         # * You could merge CHG, CHH using: --merge_non_CpG
-        read_base_meth_state_chg = expand("{root}/{data_dir}/07_bismark_methyl_extractor/CHG_context_{{ref}}--{{patient_id}}-{{group}}-{{srx_id}}-{{layout}}.txt.gz", root = config["root"], data_dir=config["data_dir"]),
-        read_base_meth_state_chh = expand("{root}/{data_dir}/07_bismark_methyl_extractor/CHH_context_{{ref}}--{{patient_id}}-{{group}}-{{srx_id}}-{{layout}}.txt.gz", root = config["root"], data_dir=config["data_dir"]),
+        # read_base_meth_state_chg = expand("{root}/{data_dir}/07_bismark_methyl_extractor/CHG_context_{{ref}}--{{patient_id}}-{{group}}-{{srx_id}}-{{layout}}.txt.gz", root = config["root"], data_dir=config["data_dir"]),
+        # read_base_meth_state_chh = expand("{root}/{data_dir}/07_bismark_methyl_extractor/CHH_context_{{ref}}--{{patient_id}}-{{group}}-{{srx_id}}-{{layout}}.txt.gz", root = config["root"], data_dir=config["data_dir"]),
         chh_ot = expand("{root}/{data_dir}/07_bismark_methyl_extractor/CHH_OT_{{ref}}--{{patient_id}}-{{group}}-{{srx_id}}-{{layout}}.txt.gz", root = config["root"], data_dir=config["data_dir"]),
         chh_ob = expand("{root}/{data_dir}/07_bismark_methyl_extractor/CHH_OB_{{ref}}--{{patient_id}}-{{group}}-{{srx_id}}-{{layout}}.txt.gz", root = config["root"], data_dir=config["data_dir"]),
         chg_ot = expand("{root}/{data_dir}/07_bismark_methyl_extractor/CHG_OT_{{ref}}--{{patient_id}}-{{group}}-{{srx_id}}-{{layout}}.txt.gz", root = config["root"], data_dir=config["data_dir"]),
@@ -94,8 +94,9 @@ rule bismark_methylation_extractor_pe:
         cph_report = expand("{root}/{data_dir}/07_bismark_methyl_extractor/{{ref}}--{{patient_id}}-{{group}}-{{srx_id}}-{{layout}}.CpG_report.txt.gz", root = config["root"], data_dir=config["data_dir"]),
         c_summary = expand("{root}/{data_dir}/07_bismark_methyl_extractor/{{ref}}--{{patient_id}}-{{group}}-{{srx_id}}-{{layout}}.cytosine_context_summary.txt", root = config["root"], data_dir=config["data_dir"])
 
+
     log:
-        "logs/secondary_rules/06_bismark_methylation_extractor_se/06_bismark_methylation_extractor_se-{ref}--{patient_id}-{group}-{srx_id}-{layout}.log"
+        "logs/secondary_rules/07_bismark_methylation_extractor_pe/07_bismark_methylation_extractor_pe-{ref}--{patient_id}-{group}-{srx_id}-{layout}.log"
     
     conda:
         "../../environment_files/bismark.yaml"
