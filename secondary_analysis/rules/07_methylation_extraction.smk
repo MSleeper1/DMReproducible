@@ -180,3 +180,40 @@ rule wgbstools_convert_bam_to_beta_bis:
         wgbstools bam2pat -f --out_dir {params.outdir} --mbias --genome {params.genome_name} --temp_dir {params.tempdir} {input.bam} >> {log} 2>&1
         echo "done" >> {log}
         """
+
+# bismark_methylation_extractor --gzip --single-end --output_dir /home/msleeper/scratch/data/07_bis_test/ --cytosine_report --bedGraph --genome_folder /home/msleeper/scratch/genomes/hg38/bismark/ /home/msleeper/scratch/data/06_merged_deduped_bis/215--N37-Colon-Normal-SRX1631736-pe.bam
+# bismark_methylation_extractor --gzip --single-end --output_dir /home/msleeper/scratch/data/07_bis_test/ --cytosine_report --bedGraph --genome_folder /home/msleeper/scratch/genomes/hg38/bismark/ /home/msleeper/scratch/data/06_merged_deduped_bwa/215--N37-Colon-Normal-SRX1631736-pe.bam
+# bismark_methylation_extractor --gzip --paired-end --output_dir /home/msleeper/scratch/data/07_bis_test/ --comprehensive --genome_folder /home/msleeper/scratch/genomes/hg38/bismark/ /home/msleeper/scratch/data/06_merged_deduped_bwa/215--N37-Colon-Normal-SRX1631736-pe.bam
+
+rule methyldackel_bwa:
+    input:
+        bam = expand("{root}/{data_dir}/06_merged_deduped_bwa/{{ref}}--{{patient_id}}-{{group}}-{{srx_id}}-{{layout}}.bam", root = config["root"], data_dir=config["data_dir"]),
+        ref = expand("{root}/{genomes_dir}/{genome}/{fasta}.fa", root = config["root"], genomes_dir=config["genomes_dir"], genome=config["ref"]["genome"], fasta=config["ref"]["fasta"])
+
+    output:
+        cpg_context = expand("{root}/{data_dir}/07_methyldackel_bwa/{{ref}}--{{patient_id}}-{{group}}-{{srx_id}}-{{layout}}_CpG.bedGraph", root = config["root"], data_dir=config["data_dir"]),
+        merged_cpg_context = expand("{root}/{data_dir}/07_methyldackel_bwa/{{ref}}--{{patient_id}}-{{group}}-{{srx_id}}-{{layout}}_mergedContext_CpG.bedGraph", root = config["root"], data_dir=config["data_dir"]),
+        methylkit_in = expand("{root}/{data_dir}/07_methyldackel_bwa/{{ref}}--{{patient_id}}-{{group}}-{{srx_id}}-{{layout}}_CpG.methylKit", root = config["root"], data_dir=config["data_dir"]),
+        cytosine_report = expand("{root}/{data_dir}/07_methyldackel_bwa/{{ref}}--{{patient_id}}-{{group}}-{{srx_id}}-{{layout}}.cytosine_report.txt", root = config["root"], data_dir=config["data_dir"])
+
+    log:
+        "logs/secondary_rules/07_methyldackel_bwa/07_methyldackel_bwa-{ref}--{patient_id}-{group}-{srx_id}-{layout}.log"
+
+    conda:
+        "../../environment_files/methyldackel.yaml"
+
+    params:
+        out_dir = expand("{root}/{data_dir}/07_methyldackel_bwa/", root = config["root"], data_dir=config["data_dir"]),
+        out_prefix = "{root}/{data_dir}/07_methyldackel_bwa/{{ref}}--{{patient_id}}-{{group}}-{{srx_id}}-{{layout}}".format(root = config["root"], data_dir=config["data_dir"])
+
+    shell:
+        '''
+        echo "Creating output directory {params.out_dir}" > {log}
+        mkdir -p {params.out_dir}
+        echo "Running methyldackel for {input.bam}" > {log}
+        MethylDackel extract -o {params.out_prefix} {input.ref} {input.bam}
+        MethylDackel extract --mergeContext -o {params.out_prefix}_mergedContext {input.ref} {input.bam}
+        MethylDackel extract --cytosine_report -o {params.out_prefix} {input.ref} {input.bam}
+        MethylDackel extract --methylKit -o {params.out_prefix} {input.ref} {input.bam}
+        echo "done" >> {log}
+        '''
