@@ -55,7 +55,7 @@ rule get_samples_pe:
         mkdir -p {params.output_dir} 
         mkdir -p {params.temp_dir} 
         echo "downloading {wildcards.accession} to {params.output_dir}" > {log}
-        fasterq-dump --temp {params.temp_dir} -O {params.output_dir} {wildcards.accession} >> {log} 2>&1
+        fasterq-dump -p --temp {params.temp_dir} -O {params.output_dir} {wildcards.accession} >> {log} 2>&1
         echo "done"
         echo "removing temp directory" >> {log}
         rm -rf {params.temp_dir}
