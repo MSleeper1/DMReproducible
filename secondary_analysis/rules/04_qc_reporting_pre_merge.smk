@@ -151,14 +151,15 @@ rule qualimap_pre_merge_bwa:
         "../../environment_files/qualimap.yaml"
 
     params:
-        out_dir = expand("{root}/{rep_dir}/04_qualimap_bwa/{{ref}}--{{patient_id}}-{{group}}-{{srx_id}}-{{layout}}/{{accession}}_pre_merge", root = config["root"], rep_dir=config["reports_dir"])
+        out_dir = expand("{root}/{rep_dir}/04_qualimap_bwa/{{ref}}--{{patient_id}}-{{group}}-{{srx_id}}-{{layout}}/{{accession}}_pre_merge", root = config["root"], rep_dir=config["reports_dir"]),
+        extra = "--java-mem-size=14G"
 
     shell:
         """
         echo "making output directory" > {log}
         mkdir -p {params.out_dir}
         echo "Running qualimap on {input.bwa_bam}" > {log}
-        qualimap bamqc -bam {input.bwa_bam} -c -sd -os -gd hg38 -gff {input.gtf} --java-mem-size=7G --outdir {params.out_dir} >> {log} 2>&1
+        qualimap bamqc -bam {input.bwa_bam} -c -sd -os -gd hg38 -gff {input.gtf} {params.extra} --outdir {params.out_dir} >> {log} 2>&1
         echo "Done" >> {log}
         """
 
@@ -180,14 +181,15 @@ rule qualimap_pre_merge_bis:
         "../../environment_files/qualimap.yaml"
 
     params:
-        out_dir = expand("{root}/{rep_dir}/04_qualimap_bis/{{ref}}--{{patient_id}}-{{group}}-{{srx_id}}-{{layout}}/{{accession}}_pre_merge", root = config["root"], rep_dir=config["reports_dir"])
+        out_dir = expand("{root}/{rep_dir}/04_qualimap_bis/{{ref}}--{{patient_id}}-{{group}}-{{srx_id}}-{{layout}}/{{accession}}_pre_merge", root = config["root"], rep_dir=config["reports_dir"]),
+        extra = "--java-mem-size=14G"
 
     shell:
         """
         echo "making output directory" > {log}
         mkdir -p {params.out_dir}
         echo "Running qualimap on {input.bis_bam}" > {log}
-        qualimap bamqc -bam {input.bis_bam} -c -sd -os -gd hg38 -gff {input.gtf} --java-mem-size=7G --outdir {params.out_dir} >> {log} 2>&1
+        qualimap bamqc -bam {input.bis_bam} -c -sd -os -gd hg38 -gff {input.gtf} {params.extra} --outdir {params.out_dir} >> {log} 2>&1
         echo "Done" >> {log}
         """
 
