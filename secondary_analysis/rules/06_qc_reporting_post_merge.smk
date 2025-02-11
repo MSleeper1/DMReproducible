@@ -26,14 +26,14 @@ rule qualimap_post_merge_bwa:
         "../../environment_files/qualimap.yaml"
 
     params:
-        out_dir = expand("{root}/{rep_dir}/06_qualimap_bwa/{{ref}}--{{patient_id}}-{{group}}-{{srx_id}}-{{layout}}", root = config["root"], rep_dir=config["reports_dir"])
-
+        out_dir = expand("{root}/{rep_dir}/06_qualimap_bwa/{{ref}}--{{patient_id}}-{{group}}-{{srx_id}}-{{layout}}", root = config["root"], rep_dir=config["reports_dir"]),
+        extra = "--java-mem-size=35G"
     shell:
         """
         echo making output directory {params.out_dir} > {log}
         mkdir -p {params.out_dir}
         echo "Running qualimap on {input.bwa_bam}" > {log}
-        qualimap bamqc -bam {input.bwa_bam} -c -sd -os -gd hg38 -gff {input.gtf} --java-mem-size=7G --outdir {params.out_dir} >> {log} 2>&1
+        qualimap bamqc -bam {input.bwa_bam} -c -sd -os -gd hg38 -gff {input.gtf} {params.extra} --outdir {params.out_dir} >> {log} 2>&1
         echo "Done" >> {log}
         """
 
@@ -52,14 +52,14 @@ rule qualimap_post_merge_bis:
         "../../environment_files/qualimap.yaml"
 
     params:
-        out_dir = expand("{root}/{rep_dir}/06_qualimap_bis/{{ref}}--{{patient_id}}-{{group}}-{{srx_id}}-{{layout}}", root = config["root"], rep_dir=config["reports_dir"])
-
+        out_dir = expand("{root}/{rep_dir}/06_qualimap_bis/{{ref}}--{{patient_id}}-{{group}}-{{srx_id}}-{{layout}}", root = config["root"], rep_dir=config["reports_dir"]),
+        extra = "--java-mem-size=35G"
     shell:
         """
         echo making output directory {params.out_dir} > {log}
         mkdir -p {params.out_dir}
         echo "Running qualimap on {input.bis_bam}" > {log}
-        qualimap bamqc -bam {input.bis_bam} -c -sd -os -gd hg38 -gff {input.gtf} --java-mem-size=7G --outdir {params.out_dir} >> {log} 2>&1
+        qualimap bamqc -bam {input.bis_bam} -c -sd -os -gd hg38 -gff {input.gtf} {params.extra} --outdir {params.out_dir} >> {log} 2>&1
         echo "Done" >> {log}
         """
 
