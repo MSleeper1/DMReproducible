@@ -1,0 +1,48 @@
+### configuration file for DMR workflow ###
+root: "/home/msleeper" # path to root directory
+
+### conditional configuration ###
+# Alignment options (set which alignment pathways to initialize)
+# must set at least one of these to true to run the pipeline
+bismark: True # set to true if you want the bismark processing pathway to initialize
+bwameth: True # set to true if you want the bwameth processing pathway to initialize
+
+# SRA fastq file download options
+get_fastq_files: True # set to true if you want fastq files to be downloaded from SRA 
+# files will be downloaded based on accessions provided in `samples_tsv`
+# If set to false: you must provide full path to local fastq file to be used
+# Locally provided fastq files will be moved and renamed based on information provided in samples_tsv to match:
+# "{root}/{data_dir}/01_raw_sequence_files/{{ref}}--{{patient_id}}-{{group}}-{{srx_id}}-{{layout}}/{{accession}}.fastq"
+# "_1.fastq" and "_2.fastq" will be used as the suffix if paired end is specified in samples_tsv. 
+
+### add in rule to move local fastq files if get_fastq_files==false ###
+
+### All directories will have the root path prepended to them later ###
+# Do not include the root path in the config directories or files below
+
+### data accession and metadata info tsv (can be freely changed) ###
+samples_tsv: "workflows/DMReproducible/supplementary/896_adenoma_2.tsv" 
+
+### directories for outputs (can be freely changed) ###
+genomes_dir: "scratch/genomes" # path to genome output directory
+data_dir: "scratch/data" # path to data output directory 
+reports_dir: "scratch/reports" # path to reports output directory
+
+# ### reference genome information (can be changed with special consideration noted in comments) ###
+ref:
+  genome: "hg38" # genome build name (can be freely changed)
+  fasta: "hg38.analysisSet" # prefix for genome fasta file name (this must match file name from goldenPath without the extentions)
+  goldenPath: "//hgdownload.cse.ucsc.edu/goldenPath/hg38/bigZips/analysisSet/hg38.analysisSet.fa.gz" # UCSC genome browser path to reference genome fasta file (can be freely changed)
+  
+  ### reference index directories ###
+  wgbstools_idx_dir: "programs/wgbs_tools/references" # root dir will be appened onto this (only change beginning to match location of wgbs_tools program directory (wgbstools must be set up separately before running the pipeline - should end in "/wgbs_tools/references")
+
+  ### annotation file info ###
+  gtf: "hg38.knownGene" # prefix for gtf file name (must match file name from gtf_goldenPath without the extentions)
+  gtf_goldenPath: "//hgdownload.soe.ucsc.edu/goldenPath/hg38/bigZips/genes/hg38.knownGene.gtf.gz" # UCSC genome browser path to gtf file (can be freely changed but file should end in gtf.gz)
+  annotation_file: /home/msleeper/workflows/dmr_workflow/supplementary/gencode.v44.chr_patch_hapl_scaff.basic.annotation.gff3.gz
+
+### additional arguments for pre-processing subworkflow rules ###
+prep_args:
+  rsync_get_ref: "-avzP --progress --ignore-existing" # rsync arguments
+  bismark_genome_prep: "--verbose --bowtie2" # bismark arguments
