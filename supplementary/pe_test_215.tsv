@@ -1,0 +1,2 @@
+ref	patient_id	accession	group	layout	sample_type	age	sex	ethnicity	sample_extraction_method	diagnosis	biosample_id	geosample_id	geoseries_id	prj_id	srp_id	srx_id	matched_srx_id
+215	N37-Colon	SRR3225631	Normal	pe	Colon_normal	NA	NA	NA	NA	NA	SAMN04558104	GSM2088202	GSE79215	PRJNA315194	SRP071771	SRX1631736	NA
