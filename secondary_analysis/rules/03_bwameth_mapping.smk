@@ -24,7 +24,7 @@ rule bwameth_mapping_se:
     # shadow: 
     #     "shallow"
 
-    threads: 3
+    threads: 8
 
     params: 
         accession = "{accession}",
@@ -63,7 +63,7 @@ rule bwameth_mapping_pe:
     # shadow: 
     #     "shallow"
 
-    threads: 6
+    threads: 12
 
     params: 
         accession = "{accession}",
