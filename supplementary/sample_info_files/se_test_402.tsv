@@ -1,0 +1,2 @@
+ref	patient_id	accession	group	layout	sample_type	age	sex	ethnicity	sample_extraction_method	diagnosis	biosample_id	geosample_id	geoseries_id	prj_id	srp_id	srx_id	matched_srx_id
+402	241	SRR21587716	Cancer_M	se	Colon_Metastasized	NA	male	NA	NA	Colon_primary_LiverM	SAMN30863560	GSM6585687	GSE213402	PRJNA880812	SRP397555	SRX17589484	NA
