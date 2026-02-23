@@ -21,7 +21,7 @@ get_fastq_files: True # set to true if you want fastq files to be downloaded fro
 # Do not include the root path in the config directories or files below
 
 ### data accession and metadata info tsv (can be freely changed) ###
-samples_tsv: "workflows/DMReproducible/supplementary/896_adenoma_2.tsv" 
+samples_tsv: "workflows/DMReproducible/supplementary/896_overflow_final.tsv" 
 
 ### directories for outputs (can be freely changed) ###
 genomes_dir: "scratch/genomes" # path to genome output directory
