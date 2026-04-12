@@ -1,0 +1,473 @@
+---
+title: "Cell Type Dashboard"
+output:
+  flexdashboard::flex_dashboard:
+    orientation: rows
+    vertical_layout: fill
+params:
+  csv_file: "data.csv"
+---
+
+```{r setup, include=FALSE}
+# Run with:  Rscript -e "rmarkdown::render('uxm_heatmap_dash.Rmd', params = list(csv_file = 'uxm_output.171.csv'))
+library(flexdashboard)
+library(plotly)
+library(dplyr)
+library(tidyr)
+library(DT)
+library(reticulate)
+library(heatmaply)
+
+# Allow use of Python inside R Markdown
+use_python("/home/msleeper/miniconda3/envs/flex_dash/bin/python3", required = TRUE) # adjust to your python path
+```
+
+```{r}
+# Read data from parameter
+df <- read.csv(params$csv_file, check.names = FALSE)
+
+# Optional: remove cell types with all zeros
+df <- df %>% filter(rowSums(select(., -1)) > 0)
+
+# Convert to matrix for heatmap
+mat <- as.matrix(df[,-1])
+rownames(mat) <- df[[1]]
+
+# Cluster rows and columns
+row_dist <- dist(mat)
+col_dist <- dist(t(mat))
+row_clust <- hclust(row_dist, method = "average")
+col_clust <- hclust(col_dist, method = "average")
+
+mat_clustered <- mat[row_clust$order, col_clust$order]
+
+# Heatmap
+heatmap_plot <- plot_ly(
+  x = colnames(mat_clustered),
+  y = rownames(mat_clustered),
+  z = mat_clustered,
+  type = "heatmap",
+  colorscale = 'Viridis'  # or "Plasma", "Cividis", etc.
+) %>%
+  layout(
+    xaxis = list(title = "Samples", tickangle = 45),
+    yaxis = list(title = "Cell Types")
+  )
+
+# Optional: Add colorbar title and control size
+heatmap_plot <- heatmap_plot %>%
+  colorbar(title = "Contribution") %>%
+  layout(
+    width = 1200,
+    height = 700
+  )
+
+
+# Bar plot 
+# Remove cell types with all zero contributions
+df_filtered <- df %>% filter(rowSums(select(., -1)) > 0)
+
+# Convert from wide to long format
+df_long <- df_filtered %>%
+  pivot_longer(cols = -CellType, names_to = "Sample", values_to = "Contribution")
+
+# Calculate total contribution per CellType for sorting
+total_contrib <- df_long %>%
+  group_by(CellType) %>%
+  summarise(Total = sum(Contribution)) %>%
+  arrange(desc(Total))
+
+# Factor levels for CellType ordered by total contribution
+df_long$CellType <- factor(df_long$CellType, levels = total_contrib$CellType)
+
+# Filter: only keep cell types with total contribution above a threshold (e.g., 0.05)
+threshold <- 0.05
+celltypes_to_plot <- total_contrib %>% filter(Total > threshold) %>% pull(CellType)
+
+df_long_filtered <- df_long %>% filter(CellType %in% celltypes_to_plot)
+
+# Create interactive stacked bar plot
+bar_plot <- plot_ly(
+  df_long_filtered,
+  x = ~Sample,
+  y = ~Contribution,
+  color = ~CellType,
+  type = 'bar',
+  text = ~paste("CellType:", CellType, "<br>Contribution:", round(Contribution, 3)),
+  hoverinfo = "text"
+) %>%
+  layout(
+    barmode = "stack",
+    xaxis = list(title = "Samples", tickangle = 45),
+    yaxis = list(title = "Contribution"),
+    legend = list(title = list(text = "<b>Cell Types</b>")),
+    title = "Stacked Barplot of Cellular Contributions"
+  )
+
+
+# Data table
+data_table <- datatable(df, options = list(pageLength = 10))
+
+# Interactive clustered heatmap with dendrograms
+dend_heatmap <- heatmaply(
+  mat,
+  scale = "none",        # no scaling here; use "row" or "column" if desired
+  colors = viridis::viridis(256),
+  dendrogram = "both",   # cluster rows and columns and show dendrograms
+  xlab = "Samples",
+  ylab = "Cell Types",
+  main = "Clustered Heatmap with Dendrograms"
+)
+```
+
+Page 1
+=====================================  
+Column {.tabset}
+-----------------------------------------------------------------------
+### R Heatmap
+
+```{r}
+heatmap_plot
+```
+
+### R Stacked Bar Plot
+```{r}
+bar_plot
+```
+
+### Heatmap with Dend
+```{r}
+dend_heatmap
+```
+
+### Estimated Cell Contributions by Sample
+```{r}
+data_table
+```
+
+Page 2
+=====================================  
+Column {.tabset}
+-----------------------------------------------------------------------
+### Clustered Heatmap
+```{python}
+```
+
+### Sorted & Filtered Barplot
+```{python}
+
+```
+
+### Complex Heatmap
+```{python, echo=FALSE}
+import pandas as pd
+import plotly.graph_objects as go
+from scipy.cluster.hierarchy import linkage, leaves_list
+
+# Load data
+df = pd.read_csv(r.params['csv_file'])
+# Assume first column is row labels
+df.set_index(df.columns[0], inplace=True)
+
+def heatmap_complex(df):
+    df_t = df.T
+    threshold = 0.01
+    filtered_cols = df_t.columns[df_t.max(axis=0) > threshold]
+    df_t_filtered = df_t[filtered_cols]
+
+    row_linkage = linkage(df_t_filtered, method='average', metric='euclidean')
+    row_order = leaves_list(row_linkage)
+    col_linkage = linkage(df_t_filtered.T, method='average', metric='euclidean')
+    col_order = leaves_list(col_linkage)
+
+    df_clustered = df_t_filtered.iloc[row_order, col_order]
+    cell_types = list(df_clustered.columns)
+    dropdown_options = [{'label': 'All Cell Types', 'value': 'all'}] + \
+                    [{'label': ct, 'value': ct} for ct in cell_types]
+
+    fig = go.Figure()
+
+    heatmap = go.Heatmap(
+        z=df_clustered.values,
+        x=df_clustered.columns,
+        y=df_clustered.index,
+        colorscale='Viridis',
+        colorbar=dict(title="Contribution")
+    )
+    fig.add_trace(heatmap)
+
+    fig.update_layout(
+        title="Clustered Cellular Contributions Heatmap with Cell Type Filter",
+        xaxis=dict(tickangle=45),
+        width=900,
+        height=700,
+        updatemenus=[
+            dict(
+                active=0,
+                buttons=[
+                    dict(
+                        label=option['label'],
+                        method="update",
+                        args=[{"z": [df_clustered[([option['value']] if option['value'] != 'all' else cell_types)].values],
+                            "x": [df_clustered[([option['value']] if option['value'] != 'all' else cell_types)].columns]},
+                            {"xaxis": {"tickangle": 45}}]
+                    )
+                    for option in dropdown_options
+                ],
+                direction="down",
+                showactive=True,
+                x=0,
+                y=1.15,
+                xanchor='left',
+                yanchor='top'
+            )
+        ]
+    )
+    return fig
+
+fig = heatmap_complex(df)
+
+fig.show()
+```
+
+
+```{python}
+### Broken below here
+#--- Stacked Barcharts ---#
+
+# Plots cellular contribution as stacked bar plot
+def plot_uxm_stacked(df):
+    # plot
+    fig, ax = plt.subplots(figsize=(14, 8))
+    # Transpose so samples are on x-axis
+    df.T.plot(
+        kind="bar",
+        stacked=True,
+        figsize=(14, 8),
+        ax=ax,
+        colormap="tab20"  # nice categorical colormap
+    )
+    # Labels & Formatting
+    ax.set_ylabel("Estimated Cellular Contribution")
+    ax.set_xlabel("Sample")
+    ax.set_title("Estimated Cellular Composition of Tissue Samples", fontsize=16)
+    ax.legend(bbox_to_anchor=(1.05, 1), loc='upper left', title="Cell Type")
+    plt.tight_layout()
+    plt.show()
+
+
+#--- Heatmaps ---#
+
+# Plots cellular contribution as heatmap
+def plot_heatmap(df):
+    # Create the heatmap
+    plt.figure(figsize=(14, 10))
+    sns.heatmap(
+        df,
+        cmap="viridis",      # color palette (can try "mako", "plasma", "coolwarm")
+        cbar_kws={'label': 'Estimated Cellular Contribution'},
+        linewidths=0.3
+    )
+    # Labels
+    plt.title("Cell Type Contribution Heatmap", fontsize=16)
+    plt.xlabel("Sample")
+    plt.ylabel("Cell Type")
+    plt.tight_layout()
+    plt.show()
+
+# Plots cellular contribution as clustered heatmap
+def plot_clustered_heatmap(df):
+    # Create the clustered heatmap
+    sns.clustermap(
+        df,
+        cmap="viridis",       # try "mako", "coolwarm", "plasma" for different looks
+        figsize=(14, 12),
+        cbar_kws={'label': 'Estimated Cellular Contribution'},
+        linewidths=0.3,
+        metric="euclidean",   # distance metric for clustering
+        method="average"      # linkage method (try "ward", "complete", "single")
+    )
+    plt.suptitle("Clustered Heatmap of Cell Type Contributions", y=1.02, fontsize=16)
+    plt.show()
+
+
+#--- Paneled images with multiple plots ---#
+
+# Plots heatmap and bar chart (top 10 cell types)
+def plots_joined_reduced(df):
+
+    TOP_N = 10  # Number of top cell types to keep in the bar chart legend
+    
+    # Keep original column order (matches stacked bar chart)
+    sample_order = df.columns.tolist()
+
+    # Create "Other" category for stacked bar chart
+    top_celltypes = df.index[:TOP_N]
+    df_bar = df.copy()
+    
+    # Sum all contributions not in top N into "Other"
+    df_bar.loc["Other"] = df_bar.loc[~df_bar.index.isin(top_celltypes)].sum()
+    
+    # Keep only top N + Other for stacked bar chart
+    df_bar = df_bar.loc[list(top_celltypes) + ["Other"]]
+    
+    # Create combined figure
+    fig = plt.figure(figsize=(22, 10))
+    gs = gridspec.GridSpec(1, 2, width_ratios=[1.2, 1])
+    
+    # Left Panel: Stacked Bar Chart
+    ax1 = plt.subplot(gs[0])
+    df_bar.T.plot(
+        kind="bar",
+        stacked=True,
+        ax=ax1,
+        colormap="tab20"
+    )
+    ax1.set_ylabel("Estimated Cellular Contribution")
+    ax1.set_xlabel("Sample")
+    ax1.set_title(f"Cellular Composition by Sample (Top {TOP_N} + Other)", fontsize=16)
+    ax1.legend(bbox_to_anchor=(1.05, 1), loc='upper left', title="Cell Type")
+    
+    # Right Panel: Full Heatmap
+    ax2 = plt.subplot(gs[1])
+    sns.heatmap(
+        df[sample_order],  # full set of cell types for heatmap
+        cmap="viridis",
+        cbar_kws={'label': 'Estimated Cellular Contribution'},
+        linewidths=0.3,
+        ax=ax2
+    )
+    ax2.set_title("Heatmap of Cell Type Contributions", fontsize=16)
+    ax2.set_xlabel("Sample")
+    ax2.set_ylabel("Cell Type")
+    plt.tight_layout()
+    plt.show()
+
+
+# plots normalized and clustered heatmap
+def clustered_hm_normalized(df):
+    # Normalize rows to 0–1
+    df_normalized = df.sub(df.min(axis=1), axis=0)
+    df_normalized = df_normalized.div(df_normalized.max(axis=1), axis=0)
+    sns.clustermap(
+        df_normalized,
+        cmap="viridis",
+        metric="euclidean",
+        method="average",
+        linewidths=0.3,
+        figsize=(8, 10),
+        cbar_kws={'label': 'Normalized Contribution (0–1)'}
+    )
+    plt.suptitle("Clustered Heatmap of Cell Type Contributions (Normalized)", y=1.02, fontsize=16)
+    plt.show()
+
+
+# plots heatmaps of normalized and non normalized data side by side
+def paneled_hm_normalized(df):
+    # Normalize
+    df_normalized = df.sub(df.min(axis=1), axis=0)
+    df_normalized = df_normalized.div(df_normalized.max(axis=1), axis=0)
+    # Create and save original cluster heatmap
+    cluster_orig = sns.clustermap(
+        df,
+        cmap="viridis",
+        metric="euclidean",
+        method="average",
+        linewidths=0.3,
+        figsize=(8, 10),
+        cbar_kws={'label': 'Contribution'}
+    )
+    cluster_orig.savefig("cluster_orig.png")
+    plt.close(cluster_orig.figure)
+
+    # Create and save normalized cluster heatmap
+    cluster_norm = sns.clustermap(
+        df_normalized,
+        cmap="viridis",
+        metric="euclidean",
+        method="average",
+        linewidths=0.3,
+        figsize=(8, 10),
+        cbar_kws={'label': 'Normalized Contribution (0–1)'}
+    )
+    cluster_norm.savefig("cluster_norm.png")
+    plt.close(cluster_norm.figure)
+
+    # Load images
+    img_orig = Image.open("cluster_orig.png")
+    img_norm = Image.open("cluster_norm.png")
+
+    # Plot side-by-side
+    fig, axs = plt.subplots(1, 2, figsize=(24, 12))
+    axs[0].imshow(img_orig)
+    axs[0].axis('off')
+    axs[0].set_title("Original Contributions", fontsize=16)
+
+    axs[1].imshow(img_norm)
+    axs[1].axis('off')
+    axs[1].set_title("Normalized Contributions", fontsize=16)
+
+    plt.tight_layout()
+    plt.show()
+
+```
+
+Page 3
+=====================================  
+Column {.tabset}
+-----------------------------------------------------------------------
+
+### Stacked bar
+```{python}
+# import matplotlib.pyplot as plt
+# import seaborn as sns
+# from matplotlib import gridspec
+# from PIL import Image
+
+# # Load data
+# df = pd.read_csv(r.params['csv_file'])
+
+# # Assume first column is row labels
+# df.set_index(df.columns[0], inplace=True)
+
+# # Sort cell types (rows) by average contribution, descending
+# df_sorted = df.loc[df.mean(axis=1).sort_values(ascending=False).index]
+
+# # Filter out rows where the sum across all columns (samples) is zero
+# df_bar_filtered = df_sorted.loc[df_sorted.sum(axis=1) > 0]
+
+# # Remove rows and columns with zero variance for normalization
+# df_clean = df_sorted.loc[df.var(axis=1) > 0, df.var(axis=0) > 0]
+# plotting stacked bar
+# plot_uxm_stacked(df)
+```
+
+### Heatmap py
+```{python}
+# plotting heatmap
+# plot_heatmap(df_sorted)
+```
+
+### Clustered Heatmap
+```{python}
+# plotting clustered heatmap
+# plot_clustered_heatmap(df_sorted)
+```
+
+### Multiple plots
+```{python}
+# plotting multiple plots with reduced legend to show top 10
+# plots_joined_reduced(df_sorted)
+```
+
+### Multiple plots
+```{python}
+# heatmap with normalized values 0-1
+# clustered_hm_normalized(df_clean)
+```
+
+### Multiple plots
+```{python}
+# paneled image with normalized heatmap and not normalized heatmap side by side
+# paneled_hm_normalized(df_clean)
+```

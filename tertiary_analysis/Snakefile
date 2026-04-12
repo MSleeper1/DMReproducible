@@ -1,0 +1,73 @@
+#!/usr/bin/env snakemake --cluster-config ../cluster.yaml --cluster "sbatch --parsable --time={cluster.time} --mem={cluster.mem_mb} --nodes={cluster.nodes} --cpus-per-task={cluster.cpus-per-task} --output={cluster.output} --error={cluster.error} --job-name={cluster.name}" --jobs 20 --use-conda --rerun-incomplete --printshellcmds
+
+#### snakemake tertiary analysis workflow pipeline ####
+# author: Meghan M. Sleeper
+# run on farm cluster with:  snakemake --cluster-config ../cluster.yaml --cluster "sbatch --parsable --time={cluster.time} --mem={cluster.mem_mb} --nodes={cluster.nodes} --cpus-per-task={cluster.cpus-per-task} --output={cluster.output} --error={cluster.error} --job-name={cluster.name}" --jobs 20 --use-conda --rerun-incomplete --printshellcmds --rerun-triggers mtime --dry-run
+# runs as a subworkflow for the DMReproducible pipeline
+# purpose:
+#    - to map and call methylation data from fastq files
+#    - to run quality control on fastq files
+#    - to annotate methylation data
+#    - to run differential methylation analysis
+# input: 
+#    - tsv file specifying data accession numbers and associated metadata for wgbs data on SRA
+#    - config file specifying reference genome and file paths
+# output: 
+#    - beta values for methylation data
+#    - quality control reports
+#    - differential methylation analysis results
+#    - methylation data annotations
+# overview of secondary analysis steps:
+#    - map fastq files to reference genome
+#    - call methylation data from mapped files
+#    - run quality control on fastq files
+#    - combine methylation data from multiple samples
+#    - annotate methylation data
+
+#### import modules ####
+import pandas as pd
+import tertiary_helper_functions as hf
+
+#### assign config ####
+configfile: "../config.yaml"
+
+#### sample info ####
+sample_info = hf.get_sample_info_df(config["root"] + "/" + config["samples_tsv"])
+sample_info_se = sample_info[sample_info['layout'] == 'se']
+sample_info_pe = sample_info[sample_info['layout'] == 'pe']
+
+# Add the custom ID column
+sample_info = hf.add_custom_id_column(sample_info)
+
+# To run this, the secondary workflow must have been run and the following files must already exist:
+# expand("{root}/{data_dir}/07_wgbstools_betas_bwa/{sample.ref}--{sample.patient_id}-{sample.group}-{sample.srx_id}-{sample.layout}.{suf}", root = config["root"], data_dir=config["data_dir"], suf=["pat.gz", "pat.gz.csi", "beta"], sample = sample_info.itertuples()), # wgbstools beta output
+
+#### set up conditional files for rule all input ####
+rule_all_input_list = [
+    # # wgbstools beta outputs for bwa pathway
+    expand("{root}/{data_dir}/07_wgbstools/blocks.{sample.ref}.bed", root = config["root"], data_dir=config["data_dir"], sample=sample_info.itertuples()),
+    expand("{root}/{data_dir}/07_wgbstools/blocks.{sample.ref}.bed.{suf}", root = config["root"], data_dir=config["data_dir"], suf=["gz", "gz.tbi"], sample=sample_info.itertuples()),
+    expand("{root}/{data_dir}/07_wgbstools/avg_meth.{sample.ref}.tsv", root = config["root"], data_dir=config["data_dir"], sample=sample_info.itertuples()),
+    # expand("{root}/{data_dir}/07_wgbstools_betas_bwa/{sample.ref}--groups.csv", root = config["root"], data_dir=config["data_dir"], sample=sample_info.itertuples())
+    ]
+
+#### default rule ####
+rule all:
+     input:
+          rule_all_input_list
+
+##### include rules #####
+include: "rules/01_segment.smk"
+# include: "rules/groups_file.smk"
+# include: "rules/08_beta_to_table.smk"
+# include: "rules/08_segment.smk"
+# include: "rules/08_segment.smk"
+# include: "rules/08_segment.smk"
+# include: "rules/08_segment.smk"
+
+### Error handling ###
+onsuccess:
+    print("Workflow finished, no error")
+
+onerror:
+    print("An error occurred")

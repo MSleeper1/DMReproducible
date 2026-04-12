@@ -11,6 +11,17 @@ def get_sample_info_df(input_tsv):
     sample_info = sample_info.set_index(["srx_id"], drop=False)
     return sample_info
 
+def add_custom_id_column(df):
+    """
+    Adds a new column 'custom_id' to the DataFrame by concatenating:
+    "{ref}--{patient_id}-{group}-{srx_id}-{layout}"
+    """
+    df['custom_id'] = df.apply(
+        lambda row: f"{row['ref']}--{row['patient_id']}-{row['group']}-{row['srx_id']}-{row['layout']}",
+        axis=1
+    )
+    return df
+
 # ''' Get list of accessions for a given srx_id and determine if a merge is needed for bam files associated with that srx_id'''
 # def accession_list_by_srx_id(sample_info_df, srx_id):
 #     srx_samples = sample_info_df[sample_info_df['srx_id'] == srx_id]

@@ -30,7 +30,7 @@ rule sambamba_merge_bwameth:
     # shadow:
     #     "shallow"
 
-    threads: 3
+    threads: 12
     
     wildcard_constraints:
         srx_id = "|".join(sample_info["srx_id"].tolist()),

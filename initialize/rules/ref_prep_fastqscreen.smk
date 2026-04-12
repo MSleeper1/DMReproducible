@@ -29,7 +29,7 @@ rule ref_prep_fastqscreen:
         """
         mkdir -p {params.genomes_dir}
         cd {params.genomes_dir}
-        echo "downloading fastq_screen genomes"
-        fastq_screen --bisulfite --get_genomes 2> {log}
-        echo "done"
+        echo "downloading fastq_screen genomes" > {log}
+        fastq_screen --bisulfite --get_genomes
+        echo "done" > {log}
         """

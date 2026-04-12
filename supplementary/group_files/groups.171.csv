@@ -1,0 +1,11 @@
+custom_id,group
+171--S1_FF-cancer_M-SRX1906117-pe,cancer_M_FF
+171--S2_FF-cancer_M-SRX1906119-pe,cancer_M_FF
+171--S3_FF-cancer_M-SRX1906121-pe,cancer_M_FF
+171--S1_FFPE-cancer_M-SRX1906116-pe,cancer_M_FFPE
+171--S2_FFPE-cancer_M-SRX1906118-pe,cancer_M_FFPE
+171--S3_FFPE-cancer_M-SRX1906120-pe,cancer_M_FFPE
+171--SW480_N1-Cell_line_SW480-SRX1906122-pe,Cell_line_SW480
+171--SW480_N2-Cell_line_SW480-SRX1906123-pe,Cell_line_SW480
+171--SW620_N1-Cell_line_SW620-SRX1906124-pe,Cell_line_SW620
+171--SW620_N2-Cell_line_SW620-SRX1906125-pe,Cell_line_SW620

@@ -24,7 +24,7 @@ rule bwameth_mapping_se:
     # shadow: 
     #     "shallow"
 
-    threads: 3
+    threads: 8
 
     params: 
         accession = "{accession}",
@@ -46,8 +46,8 @@ rule bwameth_mapping_se:
 # bwameth_mapping_pe: align paired-end reads to reference genome using bwameth
 rule bwameth_mapping_pe:
     input:
-        read_1 = expand("{root}/{data_dir}/02_trimmed_trim_galore/{{ref}}--{{patient_id}}-{{group}}-{{srx_id}}-{{layout}}/{{accession}}_1_trimmed.fq", root = config["root"], data_dir=config["data_dir"]),
-        read_2 = expand("{root}/{data_dir}/02_trimmed_trim_galore/{{ref}}--{{patient_id}}-{{group}}-{{srx_id}}-{{layout}}/{{accession}}_2_trimmed.fq", root = config["root"], data_dir=config["data_dir"]),
+        read_1 = expand("{root}/{data_dir}/02_trimmed_trim_galore/{{ref}}--{{patient_id}}-{{group}}-{{srx_id}}-{{layout}}/{{accession}}_1_val_1.fq", root = config["root"], data_dir=config["data_dir"]),
+        read_2 = expand("{root}/{data_dir}/02_trimmed_trim_galore/{{ref}}--{{patient_id}}-{{group}}-{{srx_id}}-{{layout}}/{{accession}}_2_val_2.fq", root = config["root"], data_dir=config["data_dir"]),
         index = expand("{root}/{genomes_dir}/{genome}/bwameth/{fasta}.fa.gz", root = config["root"], genomes_dir = config["genomes_dir"], genome = config["ref"]["genome"], fasta = config["ref"]["fasta"])
 
     output:
@@ -55,7 +55,7 @@ rule bwameth_mapping_pe:
         bwa_report = expand("{root}/{rep_dir}/03_bwameth/{{ref}}--{{patient_id}}-{{group}}-{{srx_id}}-{{layout}}/{{accession}}_trimmed_bwameth_report.txt", root = config["root"], rep_dir=config["reports_dir"])
          
     log:
-        "logs/secondary_rules/03_bwameth_mapping_pe_pipe/03_bwameth_mapping_se_pipe-{ref}--{patient_id}-{group}-{layout}-{srx_id}-{accession}.log"
+        "logs/secondary_rules/03_bwameth_mapping_pe/03_bwameth_mapping_pe-{ref}--{patient_id}-{group}-{layout}-{srx_id}-{accession}.log"
 
     conda:
         "../../environment_files/bwameth.yaml"
@@ -63,7 +63,7 @@ rule bwameth_mapping_pe:
     # shadow: 
     #     "shallow"
 
-    threads: 6
+    threads: 12
 
     params: 
         accession = "{accession}",

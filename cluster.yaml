@@ -6,7 +6,7 @@
 #       --cluster "sbatch --parsable --time={cluster.time} 
 #       --mem={cluster.mem_mb} --nodes={cluster.nodes} 
 #       --cpus-per-task={cluster.cpus-per-task} --output={cluster.output} 
-#       --error={cluster.error} --job-name={cluster.name}"
+#       --error={cluster.error} --job-name={cluster.name} --partition={cluster.partition}"
 #       --use-conda --keep-going --rerun-incomplete --printshellcmds
 #       --latency-wait {cluster.latency-wait} --jobs {cluster.jobs}
 #       --max-jobs-per-second {cluster.max-jobs-per-second} --scheduler {cluster.scheduler}
@@ -56,12 +56,12 @@ ref_init_wgbstools:
     mem_mb: 5000   
 
 get_samples_se:
-    time: 03:00:00
-    mem_mb: 15000     
+    time: 0-15:00:00
+    mem_mb: 30000     
 
 get_samples_pe:
-    time: 03:00:00
-    mem_mb: 15000  
+    time: 0-15:00:00
+    mem_mb: 30000  
 
 # Secondary rules
 # 01 qc rules
@@ -80,49 +80,56 @@ trim_galore_se:
     time: 03:00:00
     mem_mb: 15000
 
+trim_galore_pe:
+    time: 03:00:00
+    mem_mb: 15000
+
 # 03 mapping rules
 bismark_mapping_se:
-    time: 0-20:00:00
+    time: 3-10:00:00
     mem_mb: 20000
 
 bismark_mapping_pe:
-    time: 0-20:00:00
-    mem_mb: 20000
+    time: 3-10:00:00
+    mem_mb: 40000
+    partition: bmm
 
 bwameth_mapping_se:
-    time: 0-20:00:00
-    mem_mb: 20000
-    cpus-per-task: 4
+    time: 2-10:00:00
+    mem_mb: 60000
+    cpus-per-task: 12
+    partition: bmm
 
 bwameth_mapping_pe:
-    time: 0-20:00:00
-    mem_mb: 20000
-    cpus-per-task: 4
+    time: 3-10:00:00
+    mem_mb: 60000
+    cpus-per-task: 16
+    partition: bmm
 
 # 04 and 06 deduplication rules
 sambamba_sort_index_markdups_pre_merge_bwa:
     time: 0-10:00:00
-    mem_mb: 8000
+    mem_mb: 10000
     cpus-per-task: 4
 
 sambamba_sort_index_markdups_post_merge_bwa:
     time: 0-10:00:00
-    mem_mb: 8000
+    mem_mb: 10000
     cpus-per-task: 4
 
-deduplicate_bismark_pre_merge:
+bismark_deduplicate_pre_merge:
     time: 0-10:00:00
     mem_mb: 8000
 
-deduplicate_bismark_post_merge:
+bismark_deduplicate_post_merge:
     time: 0-10:00:00
     mem_mb: 8000
 
 # 05 merge rules
 sambamba_merge_bwameth:
-    time: 0-10:00:00
-    mem_mb: 8000
-    cpus-per-task: 4
+    time: 0-20:00:00
+    mem_mb: 20000
+    cpus-per-task: 16
 
 sambamba_merge_bismark:
     time: 0-10:00:00
@@ -139,25 +146,30 @@ bismark_sort_by_coordinate_post_merge:
     time: 0-20:00:00
     mem_mb: 8000
     cpu-per-task: 4
+
+samtools_stats_post_merge_bwa:
+    time: 0-10:00:00
+    mem_mb: 8000
+    cpus-per-task: 4
     
 mosdepth_pre_merge_bwa:
     time: 0-10:00:00
-    mem_mb: 8000
+    mem_mb: 10000
     cpus-per-task: 4
 
 mosdepth_pre_merge_bis:
     time: 0-10:00:00
-    mem_mb: 8000
+    mem_mb: 10000
     cpus-per-task: 4
 
 mosdepth_post_merge_bwa:
     time: 0-10:00:00
-    mem_mb: 8000
+    mem_mb: 15000
     cpus-per-task: 4
 
 mosdepth_post_merge_bis:
     time: 0-10:00:00
-    mem_mb: 8000
+    mem_mb: 15000
     cpus-per-task: 4
 
 bismark_pre_merge_nuc_freq:
@@ -170,36 +182,70 @@ bismark_post_merge_nuc_freq:
     mem_mb: 8000
     cpus-per-task: 4
 
-feature_counts_pre_merge_bwa:
+feature_counts_pre_merge_bwa_se:
     time: 0-10:00:00
     mem_mb: 8000
     cpus-per-task: 4
 
-feature_counts_pre_merge_bis:
+feature_counts_pre_merge_bis_se:
     time: 0-10:00:00
     mem_mb: 8000
     cpus-per-task: 4
 
-feature_counts_post_merge_bwa:
+feature_counts_pre_merge_bwa_pe:
     time: 0-10:00:00
     mem_mb: 8000
     cpus-per-task: 4
 
-feature_counts_post_merge_bis:
+feature_counts_pre_merge_bis_pe:
+    time: 0-10:00:00
+    mem_mb: 8000
+    cpus-per-task: 4
+
+feature_counts_post_merge_bwa_pe:
+    time: 0-10:00:00
+    mem_mb: 8000
+    cpus-per-task: 4
+
+feature_counts_post_merge_bis_pe:
+    time: 0-10:00:00
+    mem_mb: 8000
+    cpus-per-task: 4
+
+feature_counts_post_merge_bwa_se:
+    time: 0-10:00:00
+    mem_mb: 8000
+    cpus-per-task: 4
+
+feature_counts_post_merge_bis_se:
     time: 0-10:00:00
     mem_mb: 8000
     cpus-per-task: 4
 
 qualimap_post_merge_bwa:
-    mem_mb: 8000
+    time: 0-20:00:00
+    mem_mb: 40000
+    partition: bmm
 
 qualimap_post_merge_bis:
-    mem_mb: 8000
+    time: 0-20:00:00
+    mem_mb: 40000
+    partition: bmm
 
 qualimap_pre_merge_bis:
-    mem_mb: 8000
+    mem_mb: 20000
+    time: 0-20:00:00
 
 qualimap_pre_merge_bwa:
+    mem_mb: 20000
+    time: 0-20:00:00
+
+fastqc_post_merge_bwa:
+    time: 0-10:00:00
+    mem_mb: 8000
+
+fastqc_post_merge_bis:
+    time: 0-10:00:00
     mem_mb: 8000
 
 # 07 methylation extraction rules
@@ -216,6 +262,10 @@ wgbstools_convert_bam_to_beta_bwa:
     mem_mb: 8000
 
 wgbstools_convert_bam_to_beta_bis:
+    time: 0-20:00:00
+    mem_mb: 8000
+
+methyldackel_bwa:
     time: 0-20:00:00
     mem_mb: 8000
 
