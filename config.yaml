@@ -1,5 +1,7 @@
 ### configuration file for DMR workflow ###
-root: "/home/msleeper" # path to root directory
+
+# Specific to Garden biolob
+root: "/home/meghan" # path to root directory
 
 ### conditional configuration ###
 # Alignment options (set to true if you want to run the alignment pathway)
@@ -11,8 +13,7 @@ bwameth: True # set to true if you want the bwameth processing pathway to run
 # Do not include the root path in the config directories or files below
 
 ### data accession and metadata info tsv (can be freely changed) ###
-# samples_tsv: "workflows/DMReproducible/supplementary/896_adenoma_all.tsv" 
-samples_tsv: "workflows/DMReproducible/supplementary/pe_test_215.tsv" 
+samples_tsv: "programs/DMReproducible/supplementary/sample_info_files/318_all.tsv" # should be within root directory (do not include root in path)
 
 ### directories for outputs (can be freely changed) ###
 genomes_dir: "scratch/genomes" # path to genome output directory
@@ -25,23 +26,32 @@ reports_dir: "scratch/reports" # path to reports output directory
 #   init_snakefile: "Snakefile" # path to initialize snakefile
 
 # ### reference genome information (can be changed with special consideration noted in comments) ###
-# ref:
-#   genome: "hg38" # genome build name (can be freely changed)
-#   fasta: "hg38.analysisSet" # prefix for genome fasta file name (this must match file name from goldenPath without the extentions)
-#   goldenPath: "//hgdownload.cse.ucsc.edu/goldenPath/hg38/bigZips/analysisSet/hg38.analysisSet.fa.gz" # UCSC genome browser path to reference genome fasta file (can be freely changed)
-
+## hg38
 ref:
-  genome: "hg19" # genome build name (can be freely changed)
-  fasta: "hg19.analysisSet" # prefix for genome fasta file name (this must match file name from goldenPath without the extentions)
+  genome: "hg38" # genome build name (can be freely changed)
+  fasta: "hg38.analysisSet" # prefix for genome fasta file name (this must match file name from goldenPath without the extentions)
   goldenPath: "//hgdownload.cse.ucsc.edu/goldenPath/hg38/bigZips/analysisSet/hg38.analysisSet.fa.gz" # UCSC genome browser path to reference genome fasta file (can be freely changed)
+
+## hg19
+# ref:
+#   genome: "hg19" # genome build name (can be freely changed)
+#   fasta: "hg19.analysisSet" # prefix for genome fasta file name (this must match file name from goldenPath without the extentions)
+#   goldenPath: "//hgdownload.cse.ucsc.edu/goldenPath/hg19/bigZips/analysisSet/hg19.analysisSet.fa.gz" # UCSC genome browser path to reference genome fasta file (can be freely changed)
   
   ### reference index directories ###
   wgbstools_idx_dir: "programs/wgbs_tools/references" # root dir will be appened onto this (only change beginning to match location of wgbs_tools program directory (wgbstools must be set up separately before running the pipeline - should end in "/wgbs_tools/references")
 
   ### annotation file info ###
+  ## hg38
   gtf: "hg38.knownGene" # prefix for gtf file name (must match file name from gtf_goldenPath without the extentions)
   gtf_goldenPath: "//hgdownload.soe.ucsc.edu/goldenPath/hg38/bigZips/genes/hg38.knownGene.gtf.gz" # UCSC genome browser path to gtf file (can be freely changed but file should end in gtf.gz)
-  annotation_file: /home/msleeper/workflows/dmr_workflow/supplementary/gencode.v44.chr_patch_hapl_scaff.basic.annotation.gff3.gz
+  annotation_file: /home/meghan/workflows/dmr_workflow/supplementary/gencode.v44.chr_patch_hapl_scaff.basic.annotation.gff3.gz
+
+  ## add annotation info for hg19
+  # gtf: "hg38.knownGene" # prefix for gtf file name (must match file name from gtf_goldenPath without the extentions)
+  # gtf_goldenPath: "//hgdownload.soe.ucsc.edu/goldenPath/hg38/bigZips/genes/hg38.knownGene.gtf.gz" # UCSC genome browser path to gtf file (can be freely changed but file should end in gtf.gz)
+  # annotation_file: /home/meghan/workflows/dmr_workflow/supplementary/gencode.v44.chr_patch_hapl_scaff.basic.annotation.gff3.gz
+
 
 ### additional arguments for pre-processing subworkflow rules ###
 prep_args:
@@ -49,6 +59,3 @@ prep_args:
   bismark_genome_prep: "--verbose --bowtie2" # bismark arguments
   trim_galore_se: "--phred33" # trim_galore arguments (do not add --fastqc or -o as they are specified within the rule)
   # trim galore removed all reads for 318 files due to being trimmed below 20 bp length when using -q 67
-
-tert_args:
-  wgbstools_segment_betas: "" # options: "--min_cpg 3 --max_bp 2000"
