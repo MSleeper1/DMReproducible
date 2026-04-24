@@ -43,7 +43,7 @@ ref:
   ## hg38
   gtf: "hg38.knownGene" # prefix for gtf file name (must match file name from gtf_goldenPath without the extentions)
   gtf_goldenPath: "//hgdownload.soe.ucsc.edu/goldenPath/hg38/bigZips/genes/hg38.knownGene.gtf.gz" # UCSC genome browser path to gtf file (can be freely changed but file should end in gtf.gz)
-  annotation_file: /home/msleeper/workflows/dmr_workflow/supplementary/gencode.v44.chr_patch_hapl_scaff.basic.annotation.gff3.gz
+  annotation_file: /home/msleeper/workflows/DMReproducible/supplementary/annotation_beds/gencode.v44.chr_patch_hapl_scaff.basic.annotation.gff3.gz
   
   ## add annotation info for hg19
   # gtf: "hg38.knownGene" # prefix for gtf file name (must match file name from gtf_goldenPath without the extentions)
