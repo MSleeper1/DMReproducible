@@ -25,7 +25,8 @@ import pandas as pd
 import initialize_helper_functions as hf
 
 #### assign config ####
-configfile: "../config.garden.yaml"
+# configfile: "../config.garden.yaml"
+configfile: "../config.farm.yaml"
 
 #### sample info ####
 sample_info = hf.get_sample_info_df(config["root"] + "/" + config["samples_tsv"])
