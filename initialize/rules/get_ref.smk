@@ -24,7 +24,9 @@ rule get_ref:
         echo "downloading {params.gold_path} to {params.out_dir}"
         rsync {params.rsync_args} rsync:{params.gold_path} {params.out_dir} > {log} 2>&1
         echo "unzipping {output.zipped_fasta} to {output.unzipped_fasta}"
-        gunzip -c {output.zipped_fasta} > {output.unzipped_fasta} 
+        if [ -f {output.zipped_fasta} ]; then
+            gunzip -c {output.zipped_fasta} > {output.unzipped_fasta}
+        fi 
         echo "done"
         """
 

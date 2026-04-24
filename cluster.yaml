@@ -16,7 +16,7 @@
 
 ### default cluster configuration ###
 __default__:
-    partition: med2                                             # partition to submit jobs to (-p, --partition=PARTITION)
+    partition: low                                              # partition to submit jobs to (-p, --partition=PARTITION)
     time: 0-01:00:00                                            # time limit for each job in D-HH:MM:SS (-t, --time=TIME)
     mem_mb: 2000                                                # memory limit for each job in MB (--mem=MB)
     nodes: 1                                                    # number of nodes (-N 1, --nodes=1)
