@@ -26,6 +26,8 @@ rule get_ref:
         echo "unzipping {output.zipped_fasta} to {output.unzipped_fasta}"
         if [ -f {output.zipped_fasta} ]; then
             gunzip -c {output.zipped_fasta} > {output.unzipped_fasta}
+        else
+            echo "ref file already unzipped"
         fi 
         echo "done"
         """
