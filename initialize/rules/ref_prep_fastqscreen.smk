@@ -29,7 +29,9 @@ rule ref_prep_fastqscreen:
         """
         mkdir -p {params.genomes_dir}
         cd {params.genomes_dir}
-        echo "downloading fastq_screen genomes" > {log}
-        fastq_screen --bisulfite --get_genomes
-        echo "done" > {log}
+        wget -r -np -nH --cut-dirs=3 https://www.bioinformatics.babraham.ac.uk/projects/fastq_screen/Genome_Data/FastQ_Screen_Genomes_Bisulfite/
         """
+
+# error occuring with fastq_screen get genomes command
+# fastq_screen --bisulfite --get_genomes 
+# work around by downloading them directlt with wget

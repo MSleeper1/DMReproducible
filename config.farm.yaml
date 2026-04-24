@@ -12,7 +12,7 @@ bwameth: True # set to true if you want the bwameth processing pathway to run
 
 ### data accession and metadata info tsv (can be freely changed) ###
 # samples_tsv: "workflows/DMReproducible/supplementary/896_adenoma_all.tsv" 
-samples_tsv: "workflows/DMReproducible/supplementary/pe_test_215.tsv" 
+samples_tsv: "workflows/DMReproducible/supplementary/sample_info_files/pe_test_215.tsv" 
 
 ### directories for outputs (can be freely changed) ###
 genomes_dir: "scratch/genomes" # path to genome output directory
@@ -49,6 +49,3 @@ prep_args:
   bismark_genome_prep: "--verbose --bowtie2" # bismark arguments
   trim_galore_se: "--phred33" # trim_galore arguments (do not add --fastqc or -o as they are specified within the rule)
   # trim galore removed all reads for 318 files due to being trimmed below 20 bp length when using -q 67
-
-tert_args:
-  wgbstools_segment_betas: "" # options: "--min_cpg 3 --max_bp 2000"

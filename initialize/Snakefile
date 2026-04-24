@@ -3,7 +3,8 @@
 #### snakemake initialize subworkflow pipeline ####
 # author: Meghan M. Sleeper
 # run on farm cluster with:  snakemake --cluster-config ../cluster.yaml --cluster "sbatch --parsable --time={cluster.time} --mem={cluster.mem_mb} --nodes={cluster.nodes} --cpus-per-task={cluster.cpus-per-task} --output={cluster.output} --error={cluster.error} --job-name={cluster.name}" --jobs 20 --use-conda --rerun-incomplete --printshellcmds --rerun-triggers mtime --dry-run
-# runs as a subworkflow for the DMReproducible pipeline
+# run on garden biolab with: snakemake --cores 8 --use-conda --rerun-incomplete --printshellcmds --rerun-triggers mtime --dry-run
+# run as a subworkflow for the DMReproducible pipeline before running secondary
 # purpose:
 #    - to initialize the workflow for the DMReproducible pipeline
 #    - to retrieve reference genome files
@@ -24,7 +25,7 @@ import pandas as pd
 import initialize_helper_functions as hf
 
 #### assign config ####
-configfile: "../initialize_config.yaml"
+configfile: "../config.garden.yaml"
 
 #### sample info ####
 sample_info = hf.get_sample_info_df(config["root"] + "/" + config["samples_tsv"])
@@ -69,10 +70,6 @@ include: "rules/ref_prep_fastqscreen.smk"
 
 
 #### -- Intermediate files produced by prep-Snakefile that could be added to rule all -- ###
-
-# Must uncomment these lines to include these intermediate files in the rule all
-# sample_info_se = sample_info[sample_info['layout'] == 'se']
-# sample_info_pe = sample_info[sample_info['layout'] == 'pe']
 
         #   ### 00 reference genome file prep ###
         #   expand("{ref_dir}/{fasta}.fa.gz", ref_dir=config["ref"]["dir"], fasta=config["ref"]["fasta"]),  # rsync_get_ref_genome output
