@@ -2,6 +2,7 @@
 
 # Specific to Garden biolob
 root: "/home/meghan" # path to root directory
+programs_root: "/home/meghan" # need to specify if programs/wgbstools is at a different location than root
 
 ### conditional configuration ###
 # Alignment options (set to true if you want to run the alignment pathway)
@@ -13,7 +14,13 @@ bwameth: True # set to true if you want the bwameth processing pathway to run
 # Do not include the root path in the config directories or files below
 
 ### data accession and metadata info tsv (can be freely changed) ###
-samples_tsv: "programs/DMReproducible/supplementary/sample_info_files/318_all.tsv" # should be within root directory (do not include root in path)
+# Garden is using sub sampled files for 318 patient 1 (Lymph, Primary, Normal)
+# fastq files were subsampled with seqtk:
+# seqtk sample 318--Patient1_PrimaryTumour-Colon_Metastasis-SRX8409040-se/SRR11858959.fastq 10000 > 318sub--Patient1_PrimaryTumour-Colon_Metastasis-SRX8409040-se/SRR11858959.fastq
+# samples_tsv: "programs/DMReproducible/supplementary/sample_info_files/318_sub.tsv" # should be within root directory (do not include root in path)
+# samples_tsv: "programs/DMReproducible/supplementary/sample_info_files/318_sub_100000.tsv" # should be within root directory (do not include root in path)
+# samples_tsv: "programs/DMReproducible/supplementary/sample_info_files/896.tsv" # should be within root directory (do not include root in path)
+samples_tsv: "programs/DMReproducible/supplementary/sample_info_files/896_sub_100000.tsv" # should be within root directory (do not include root in path)
 
 ### directories for outputs (can be freely changed) ###
 genomes_dir: "scratch/genomes" # path to genome output directory
@@ -60,3 +67,14 @@ prep_args:
   bismark_genome_prep: "--verbose --bowtie2" # bismark arguments
   trim_galore_se: "--phred33" # trim_galore arguments (do not add --fastqc or -o as they are specified within the rule)
   # trim galore removed all reads for 318 files due to being trimmed below 20 bp length when using -q 67
+
+## Required arguments for tertiary workflow
+tert_args:
+  specify_target_and_background_group: True # If True, you must include target and background group below
+  run_each_group_oneVall: True # If true, this will also rul wgbstools without specifying the target and background which defaults to running a one vs all for each group
+  wgbstools_target_group: "adenoma_pre-lesion" # name of target group (896 ex)
+  wgbstools_background_group: "adenoma_norm-adj" # name of background groups (896 ex)
+  # wgbstools_target_group: "Colon_Metastasis" # name of target group (318 ex)
+  # wgbstools_background_group: "Normal" # name of background groups (318 ex)
+  wgbstools_segment_betas: "" # add optional segmentation args
+  wgbstools_find_markers: "--delta_quants .3 --pval 1" # add optional find marker args

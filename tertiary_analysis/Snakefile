@@ -2,27 +2,18 @@
 
 #### snakemake tertiary analysis workflow pipeline ####
 # author: Meghan M. Sleeper
-# run on farm cluster with:  snakemake --cluster-config ../cluster.yaml --cluster "sbatch --parsable --time={cluster.time} --mem={cluster.mem_mb} --nodes={cluster.nodes} --cpus-per-task={cluster.cpus-per-task} --output={cluster.output} --error={cluster.error} --job-name={cluster.name}" --jobs 20 --use-conda --rerun-incomplete --printshellcmds --rerun-triggers mtime --dry-run
-# runs as a subworkflow for the DMReproducible pipeline
+# run on farm cluster with:  snakemake --cluster-config ../cluster.yaml --cluster "sbatch --parsable --partition={cluster.partition} --time={cluster.time} --mem={cluster.mem_mb} --nodes={cluster.nodes} --cpus-per-task={cluster.cpus-per-task} --output={cluster.output} --error={cluster.error} --job-name={cluster.name}" --jobs 20 --use-conda --rerun-incomplete --printshellcmds --rerun-triggers mtime --dry-run
+# run on garden biolab with: snakemake --cores 8 --use-conda --rerun-incomplete --printshellcmds --rerun-triggers mtime --dry-run
+# run as a subworkflow for the DMReproducible pipeline after running secondary
 # purpose:
-#    - to map and call methylation data from fastq files
-#    - to run quality control on fastq files
-#    - to annotate methylation data
-#    - to run differential methylation analysis
+#    - 
 # input: 
 #    - tsv file specifying data accession numbers and associated metadata for wgbs data on SRA
 #    - config file specifying reference genome and file paths
 # output: 
-#    - beta values for methylation data
-#    - quality control reports
-#    - differential methylation analysis results
-#    - methylation data annotations
+#    - 
 # overview of secondary analysis steps:
-#    - map fastq files to reference genome
-#    - call methylation data from mapped files
-#    - run quality control on fastq files
-#    - combine methylation data from multiple samples
-#    - annotate methylation data
+#    - 
 
 #### import modules ####
 import pandas as pd
@@ -32,24 +23,67 @@ import tertiary_helper_functions as hf
 configfile: "../config.yaml"
 
 #### sample info ####
-sample_info = hf.get_sample_info_df(config["root"] + "/" + config["samples_tsv"])
+sample_info = hf.get_sample_info_df(config["programs_root"] + "/" + config["samples_tsv"])
 sample_info_se = sample_info[sample_info['layout'] == 'se']
 sample_info_pe = sample_info[sample_info['layout'] == 'pe']
 
 # Add the custom ID column
 sample_info = hf.add_custom_id_column(sample_info)
 
+# target vs background group samples only (used in wgbstools segment and find markers)
+_tVb_samples = sample_info[
+    sample_info["group"].isin([
+        config["tert_args"]["wgbstools_target_group"],
+        config["tert_args"]["wgbstools_background_group"]
+    ])
+]
+
+# If more than one study being looked at together, this will combine the refs for naming files and directories
+_combined_ref = "_".join(sorted(sample_info["ref"].unique().tolist()))
+# e.g. "896_438" if both are present in ref within sample_info
+
 # To run this, the secondary workflow must have been run and the following files must already exist:
 # expand("{root}/{data_dir}/07_wgbstools_betas_bwa/{sample.ref}--{sample.patient_id}-{sample.group}-{sample.srx_id}-{sample.layout}.{suf}", root = config["root"], data_dir=config["data_dir"], suf=["pat.gz", "pat.gz.csi", "beta"], sample = sample_info.itertuples()), # wgbstools beta output
 
 #### set up conditional files for rule all input ####
 rule_all_input_list = [
-    # # wgbstools beta outputs for bwa pathway
-    expand("{root}/{data_dir}/07_wgbstools/blocks.{sample.ref}.bed", root = config["root"], data_dir=config["data_dir"], sample=sample_info.itertuples()),
-    expand("{root}/{data_dir}/07_wgbstools/blocks.{sample.ref}.bed.{suf}", root = config["root"], data_dir=config["data_dir"], suf=["gz", "gz.tbi"], sample=sample_info.itertuples()),
-    expand("{root}/{data_dir}/07_wgbstools/avg_meth.{sample.ref}.tsv", root = config["root"], data_dir=config["data_dir"], sample=sample_info.itertuples()),
-    # expand("{root}/{data_dir}/07_wgbstools_betas_bwa/{sample.ref}--groups.csv", root = config["root"], data_dir=config["data_dir"], sample=sample_info.itertuples())
+    # create_groups_file output
+    expand("{root}/{data_dir}/08_wgbstools_bwa/groups/{ref}--groups.csv", root=config["root"], data_dir=config["data_dir"], ref=sample_info["ref"].unique().tolist()),
+    expand("{root}/{data_dir}/08_wgbstools_bwa/groups/{ref}--groups.{target}.v.{background}.csv", root = config["root"], data_dir = config["data_dir"], target = config["tert_args"]["wgbstools_target_group"], background = config["tert_args"]["wgbstools_background_group"], ref=_tVb_samples["ref"].unique().tolist()),
+    # segment_2_markers_target_specified_bwa outputs
+    # expand("{root}/{data_dir}/08_wgbstools_bwa/{ref}-{target}_v_{background}/blocks.{ref}.{target}.v.{background}.bed", root=config["root"], data_dir=config["data_dir"], ref=_tVb_samples["ref"].unique().tolist(), target=config["tert_args"]["wgbstools_target_group"], background=config["tert_args"]["wgbstools_background_group"]),
+    expand("{root}/{data_dir}/08_wgbstools_bwa/{ref}-{target}_v_{background}/blocks.{ref}.{target}.v.{background}.bed.{suf}", root=config["root"], data_dir=config["data_dir"], ref=_tVb_samples["ref"].unique().tolist(), target=config["tert_args"]["wgbstools_target_group"], background=config["tert_args"]["wgbstools_background_group"], suf=["gz", "gz.tbi"]),
+    expand("{root}/{data_dir}/08_wgbstools_bwa/{ref}-{target}_v_{background}/avg_meth.{ref}.{target}.v.{background}.tsv", root=config["root"], data_dir=config["data_dir"], ref=_tVb_samples["ref"].unique().tolist(), target=config["tert_args"]["wgbstools_target_group"], background=config["tert_args"]["wgbstools_background_group"]),
+    expand("{root}/{data_dir}/08_wgbstools_bwa/{ref}-{target}_v_{background}/avg_meth.grouped.{ref}.{target}.v.{background}.tsv", root=config["root"], data_dir=config["data_dir"], ref=_tVb_samples["ref"].unique().tolist(), target=config["tert_args"]["wgbstools_target_group"], background=config["tert_args"]["wgbstools_background_group"]),
+    expand("{root}/{data_dir}/08_wgbstools_bwa/{ref}-{target}_v_{background}/homog.{ref}.{target}.v.{background}", root=config["root"], data_dir=config["data_dir"], ref=_tVb_samples["ref"].unique().tolist(), target=config["tert_args"]["wgbstools_target_group"], background=config["tert_args"]["wgbstools_background_group"]),
+    expand("{root}/{data_dir}/08_wgbstools_bwa/{ref}-{target}_v_{background}/markers.{ref}.{target}.v.{background}.log", root=config["root"], data_dir=config["data_dir"], ref=_tVb_samples["ref"].unique().tolist(), target=config["tert_args"]["wgbstools_target_group"], background=config["tert_args"]["wgbstools_background_group"]),
+    # segment_2_markers_one_v_all_bwa outputs
+    # expand("{root}/{data_dir}/08_wgbstools_bwa/{ref}-all-groups/blocks.{ref}.bed", root=config["root"], data_dir=config["data_dir"], ref=sample_info["ref"].unique().tolist()),
+    expand("{root}/{data_dir}/08_wgbstools_bwa/{ref}-all-groups/blocks.{ref}.bed.{suf}", root=config["root"], data_dir=config["data_dir"], ref=sample_info["ref"].unique().tolist(), suf=["gz", "gz.tbi"]),
+    expand("{root}/{data_dir}/08_wgbstools_bwa/{ref}-all-groups/avg_meth.{ref}.tsv", root=config["root"], data_dir=config["data_dir"], ref=sample_info["ref"].unique().tolist()),
+    expand("{root}/{data_dir}/08_wgbstools_bwa/{ref}-all-groups/avg_meth.grouped.{ref}.tsv", root=config["root"], data_dir=config["data_dir"], ref=sample_info["ref"].unique().tolist()),
+    expand("{root}/{data_dir}/08_wgbstools_bwa/{ref}-all-groups/homog.{ref}", root=config["root"], data_dir=config["data_dir"], ref=sample_info["ref"].unique().tolist()),
+    expand("{root}/{data_dir}/08_wgbstools_bwa/{ref}-all-groups/markers.{ref}.log", root=config["root"], data_dir=config["data_dir"], ref=sample_info["ref"].unique().tolist())
     ]
+
+# Removing outputs from rule all if config file specifies value as False
+# Remove wgbstools specified background vs target outputs if not requested in config file
+if config["tert_args"]["specify_target_and_background_group"] == False:
+    rule_all_input_list.remove(expand("{root}/{data_dir}/08_wgbstools_bwa/{ref}-{target}_v_{background}/blocks.{ref}.{target}.v.{background}.bed", root=config["root"], data_dir=config["data_dir"], ref=_tVb_samples["ref"].unique().tolist(), target=config["tert_args"]["wgbstools_target_group"], background=config["tert_args"]["wgbstools_background_group"])),
+    rule_all_input_list.remove(expand("{root}/{data_dir}/08_wgbstools_bwa/{ref}-{target}_v_{background}/blocks.{ref}.{target}.v.{background}.bed.{suf}", root=config["root"], data_dir=config["data_dir"], ref=_tVb_samples["ref"].unique().tolist(), target=config["tert_args"]["wgbstools_target_group"], background=config["tert_args"]["wgbstools_background_group"], suf=["gz", "gz.tbi"])),
+    rule_all_input_list.remove(expand("{root}/{data_dir}/08_wgbstools_bwa/{ref}-{target}_v_{background}/avg_meth.{ref}.{target}.v.{background}.tsv", root=config["root"], data_dir=config["data_dir"], ref=_tVb_samples["ref"].unique().tolist(), target=config["tert_args"]["wgbstools_target_group"], background=config["tert_args"]["wgbstools_background_group"])),
+    rule_all_input_list.remove(expand("{root}/{data_dir}/08_wgbstools_bwa/{ref}-{target}_v_{background}/avg_meth.grouped.{ref}.{target}.v.{background}.tsv", root=config["root"], data_dir=config["data_dir"], ref=_tVb_samples["ref"].unique().tolist(), target=config["tert_args"]["wgbstools_target_group"], background=config["tert_args"]["wgbstools_background_group"])),
+    rule_all_input_list.remove(expand("{root}/{data_dir}/08_wgbstools_bwa/{ref}-{target}_v_{background}/homog.{ref}.{target}.v.{background}", root=config["root"], data_dir=config["data_dir"], ref=_tVb_samples["ref"].unique().tolist(), target=config["tert_args"]["wgbstools_target_group"], background=config["tert_args"]["wgbstools_background_group"])),
+    rule_all_input_list.remove(expand("{root}/{data_dir}/08_wgbstools_bwa/{ref}-{target}_v_{background}/markers.{ref}.{target}.v.{background}.tsv", root=config["root"], data_dir=config["data_dir"], ref=_tVb_samples["ref"].unique().tolist(), target=config["tert_args"]["wgbstools_target_group"], background=config["tert_args"]["wgbstools_background_group"])),
+    rule_all_input_list.remove(expand("{root}/{data_dir}/08_wgbstools_bwa/groups/{ref}--groups.{target}.v.{background}.csv", root = config["root"], data_dir = config["data_dir"], target = config["tert_args"]["wgbstools_target_group"], background = config["tert_args"]["wgbstools_background_group"], ref=_tVb_samples["ref"].unique().tolist()))
+# Remove wgbstools default one vs all outputs if not requested in config file
+if config["tert_args"]["run_each_group_oneVall"] == False:
+    rule_all_input_list.remove(expand("{root}/{data_dir}/08_wgbstools_bwa/{ref}-all-groups/blocks.{ref}.bed", root=config["root"], data_dir=config["data_dir"], ref=sample_info["ref"].unique().tolist())),
+    rule_all_input_list.remove(expand("{root}/{data_dir}/08_wgbstools_bwa/{ref}-all-groups/blocks.{ref}.bed.{suf}", root=config["root"], data_dir=config["data_dir"], ref=sample_info["ref"].unique().tolist(), suf=["gz", "gz.tbi"])),
+    rule_all_input_list.remove(expand("{root}/{data_dir}/08_wgbstools_bwa/{ref}-all-groups/avg_meth.{ref}.tsv", root=config["root"], data_dir=config["data_dir"], ref=sample_info["ref"].unique().tolist())),
+    rule_all_input_list.remove(expand("{root}/{data_dir}/08_wgbstools_bwa/{ref}-all-groups/avg_meth.grouped.{ref}.tsv", root=config["root"], data_dir=config["data_dir"], ref=sample_info["ref"].unique().tolist())),
+    rule_all_input_list.remove(expand("{root}/{data_dir}/08_wgbstools_bwa/{ref}-all-groups/homog.{ref}", root=config["root"], data_dir=config["data_dir"], ref=sample_info["ref"].unique().tolist())),
+    rule_all_input_list.remove(expand("{root}/{data_dir}/08_wgbstools_bwa/{ref}-all-groups/markers.{ref}.tsv", root=config["root"], data_dir=config["data_dir"], ref=sample_info["ref"].unique().tolist()))
 
 #### default rule ####
 rule all:
@@ -57,13 +91,9 @@ rule all:
           rule_all_input_list
 
 ##### include rules #####
-include: "rules/01_segment.smk"
-# include: "rules/groups_file.smk"
-# include: "rules/08_beta_to_table.smk"
-# include: "rules/08_segment.smk"
-# include: "rules/08_segment.smk"
-# include: "rules/08_segment.smk"
-# include: "rules/08_segment.smk"
+include: "rules/08_create_groups_file.smk"
+include: "rules/08_segment_2_markers.smk"
+# include: "rules/08_wgbstools.smk"
 
 ### Error handling ###
 onsuccess:

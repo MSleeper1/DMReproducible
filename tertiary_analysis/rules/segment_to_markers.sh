@@ -1,28 +1,4 @@
 
-#
-# this script will:
-#   -time alignment of fastq files to a reference 
-#   -time conversion of resulting sam file to bam file
-#   -time sorting bam file
-#   -time marking duplicates in bam file
-#
-# input accession numbers for aligned bam files
-#   - this should be the file name without extension output from sratools-workflow.sh
-# outputs:
-# alignment files in sam and sorted + marked bam files along with a final merged bam
-#
-# options:
-#   -o indicates outfolder that will be created at location -w
-#      output bam and sam files will be found here
-#   -w indicates where to navigate to for access to file
-#   -r indicates the reference genome to use
-#   non-option args should be the accession numbers for fastq files being processed
-#
-# sbatch time-align2marked.sh -w [directory/path] -o [folder-name] -r [reference-genome] -f [accession-num-1] [accession-num-2] [accession-num-3]...
-#
-#-----------------------------------------------------------------------------------#
-
-
 # make things fail on errors
 set -o nounset
 set -o errexit
@@ -63,7 +39,9 @@ echo "running wgbstools segment to find_markers on beta files for study $ref_num
 
 # segmenting into homogenously methylated chunks of CpG sites according to the tutorial settings
 echo "Segmenting beta files: $files_beta"
-wgbstools segment --betas $files_beta --min_cpg 3 --max_bp 2000 -o $block_file  
+wgbstools segment --betas $files_beta -o $block_file  
+
+wgbstools homog {input.pats} -b {params.block_file} -o {params.homog_out_dir} --thresholds 0.25,0.75
 
 # compress bed file and generate corresponding index file for visualization steps
 echo " indexing blocks output by segment"
@@ -80,8 +58,6 @@ wgbstools beta_to_table $block_file.gz --betas $files_beta | column -t >> $meth_
 wgbstools find_markers --blocks_path blocks.bed.gz --betas *beta --groups_file groups.csv --delta_quants .3 --pval 1
 wgbstools find_markers --blocks_path blocks.[ref].bed.gz --betas [ref]*beta --groups_file groups.[ref].csv --delta_quants .3 --pval 1
 wgbstools find_markers --blocks_path blocks.318.bed.gz --betas 318*beta --groups_file groups.318.csv --delta_quants .3 --pval 1
-
-
 
 # # writes markers to csv file
 # cat Markers.*.bed >> DMR_markers.csv
