@@ -27,10 +27,10 @@ rule sambamba_merge_bwameth:
     conda:
         "../../environment_files/sambamba.yaml"
 
-    # shadow:
-    #     "shallow"
+    threads: 4
 
-    threads: 12
+    resources:
+        mem_mb=8000
     
     wildcard_constraints:
         srx_id = "|".join(sample_info["srx_id"].tolist()),
@@ -76,11 +76,11 @@ rule sambamba_merge_bismark:
     conda:
         "../../environment_files/sambamba.yaml"
 
-    # shadow:
-    #     "shallow"
+    threads: 4
 
-    threads: 3
-    
+    resources:
+        mem_mb=8000
+
     wildcard_constraints:
         srx_id = "|".join(sample_info["srx_id"].tolist()),
         accession = "|".join(sample_info["accession"].tolist())

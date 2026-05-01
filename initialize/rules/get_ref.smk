@@ -13,6 +13,11 @@ rule get_ref:
     conda:
         "../../environment_files/rsync.yaml"
     
+    threads: 2
+
+    resources: 
+        mem_mb=4000
+
     params:
         gold_path = config["ref"]["goldenPath"], 
         out_dir = expand("{root}/{genomes_dir}/{genome}/", root = config["root"], genomes_dir = config["genomes_dir"], genome = config["ref"]["genome"]),
@@ -44,6 +49,11 @@ rule get_ref_gtf:
 
     conda:
         "../../environment_files/rsync.yaml"
+    
+    threads: 2
+
+    resources: 
+        mem_mb=4000
     
     params:
         gold_path = config["ref"]["gtf_goldenPath"], 

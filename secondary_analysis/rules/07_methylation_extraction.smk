@@ -54,6 +54,11 @@ rule bismark_methylation_extractor_se:
     params:
         output_dir = expand("{root}/{data_dir}/07_bismark_methyl_extractor", root = config["root"], data_dir=config["data_dir"])
     
+    threads: 2
+
+    resources:
+        mem_mb=4000
+
     shell:
         '''
         echo "Running bismark_methylation_extractor for {input.bam}" > {log}
@@ -107,6 +112,11 @@ rule bismark_methylation_extractor_pe:
     params:
         output_dir = expand("{root}/{data_dir}/07_bismark_methyl_extractor", root = config["root"], data_dir=config["data_dir"])
     
+    threads: 2
+
+    resources:
+        mem_mb=4000
+
     shell:
         '''
         echo "Running bismark_methylation_extractor for {input.bam}" > {log}
@@ -140,6 +150,11 @@ rule wgbstools_convert_bam_to_beta_bwa:
         tempdir = expand("{root}/{data_dir}/07_wgbstools_betas_bwa/temp", root = config["root"], data_dir=config["data_dir"]),
         genome_name = config["ref"]["fasta"]
 
+    threads: 2
+
+    resources:
+        mem_mb=4000
+
     shell: 
         """
         mkdir -p {params.outdir}
@@ -164,8 +179,10 @@ rule wgbstools_convert_bam_to_beta_bis:
     conda:
         "../../environment_files/wgbstools.yaml"
 
-    # shadow:
-    #     "shallow"
+    threads: 2
+
+    resources:
+        mem_mb=4000
 
     params:
         outdir = expand("{root}/{data_dir}/07_wgbstools_betas_bis/", root = config["root"], data_dir=config["data_dir"]),
@@ -201,6 +218,11 @@ rule methyldackel_bwa:
 
     conda:
         "../../environment_files/methyldackel.yaml"
+
+    threads: 2
+
+    resources:
+        mem_mb=4000
 
     params:
         out_dir = expand("{root}/{data_dir}/07_methyldackel_bwa/", root = config["root"], data_dir=config["data_dir"]),

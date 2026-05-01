@@ -19,8 +19,10 @@ rule bismark_mapping_se:
     conda:
         "../../environment_files/bismark.yaml"
 
-    # shadow: 
-    #     "shallow"
+    threads: 4
+
+    resources:
+        mem_mb=8000
 
     params:
         output_dir = expand("{root}/{data_dir}/03_aligned_bismark_bwt2/{{ref}}--{{patient_id}}-{{group}}-{{srx_id}}-{{layout}}", root = config["root"], data_dir=config["data_dir"]),
@@ -65,6 +67,11 @@ rule bismark_mapping_pe:
  
     conda:
         "../../environment_files/bismark.yaml"
+
+    threads: 4
+    
+    resources:
+        mem_mb=8000
 
     params:
         output_dir = expand("{root}/{data_dir}/03_aligned_bismark_bwt2/{{ref}}--{{patient_id}}-{{group}}-{{srx_id}}-{{layout}}", root = config["root"], data_dir=config["data_dir"]),

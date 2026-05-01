@@ -2,8 +2,14 @@
 
 #### snakemake secondary analysis subworkflow pipeline ####
 # author: Meghan M. Sleeper
-# run on farm cluster with:  snakemake --cluster-config ../cluster.yaml --cluster "sbatch --parsable --time={cluster.time} --mem={cluster.mem_mb} --nodes={cluster.nodes} --cpus-per-task={cluster.cpus-per-task} --output={cluster.output} --error={cluster.error} --job-name={cluster.name}" --jobs 20 --use-conda --rerun-incomplete --printshellcmds --rerun-triggers mtime --dry-run
-# runs as a subworkflow for the DMReproducible pipeline
+# run on farm cluster with:  snakemake --cluster-config ../cluster.yaml --cluster "sbatch --parsable --partition={cluster.partition} --time={cluster.time} --mem={cluster.mem_mb} --nodes={cluster.nodes} --cpus-per-task={cluster.cpus-per-task} --output={cluster.output} --error={cluster.error} --job-name={cluster.name}" --jobs 20 --use-conda --rerun-incomplete --printshellcmds --rerun-triggers mtime --dry-run
+# run on garden biolab with: snakemake --cores 8 --use-conda --rerun-incomplete --printshellcmds --rerun-triggers mtime --dry-run
+# run as a subworkflow for the DMReproducible pipeline after running initialize and before running tertiary
+
+# run `watch -n 5 free -h` in a separate terminal while bwameth 
+# is running to see if garden is hitting swap. If it does, those particular jobs 
+# may need to be run on the HPC and the outputs transferred to garden for downstream steps.
+
 # purpose:
 #    - to map and call methylation data from fastq files
 #    - to run quality control on fastq files
@@ -29,7 +35,7 @@ import pandas as pd
 import secondary_helper_functions as hf
 
 #### assign config ####
-configfile: "../config.yaml"
+configfile: "../config.garden.yaml"
 
 #### sample info ####
 sample_info = hf.get_sample_info_df(config["root"] + "/" + config["samples_tsv"])

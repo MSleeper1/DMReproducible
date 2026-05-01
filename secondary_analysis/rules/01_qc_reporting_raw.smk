@@ -20,6 +20,11 @@ rule fastqc_se:
     conda:
         "../../environment_files/fastqc.yaml"
     
+    threads: 4
+
+    resources:
+        mem_mb=8000
+
     params:
         output_dir = expand("{root}/{rep_dir}/01_fastqc/{{ref}}--{{patient_id}}-{{group}}-{{srx_id}}-{{layout}}", root = config["root"], rep_dir = config["reports_dir"], suf=["html","zip"])
 
@@ -49,6 +54,11 @@ rule fastqc_pe:
 
     conda:
         "../../environment_files/fastqc.yaml"
+
+    threads: 4
+
+    resources:
+        mem_mb=8000
 
     params:
         output_dir = expand("{root}/{rep_dir}/01_fastqc/{{ref}}--{{patient_id}}-{{group}}-{{srx_id}}-{{layout}}", root = config["root"], rep_dir = config["reports_dir"], suf=["html","zip"])
@@ -87,10 +97,10 @@ rule fastq_screen_se:
     params:
         out_dir = expand("{root}/{rep_dir}/01_fastq_screen/{{ref}}--{{patient_id}}-{{group}}-{{srx_id}}-{{layout}}", root = config["root"], rep_dir=config["reports_dir"])
     
-    # shadow: 
-    #     "shallow"
-    
-    threads: 6
+    threads: 4
+
+    resources:
+        mem_mb=8000
     
     wildcard_constraints:
         layout = "se"
@@ -123,10 +133,10 @@ rule fastq_screen_pe:
     params:
         out_dir = expand("{root}/{rep_dir}/01_fastq_screen/{{ref}}--{{patient_id}}-{{group}}-{{srx_id}}-{{layout}}", root = config["root"], rep_dir=config["reports_dir"])
     
-    threads: 6
-    
-    # shadow: 
-    #     "shallow"
+    threads: 4
+
+    resources:
+        mem_mb=8000
     
     wildcard_constraints:
         layout = "pe"
@@ -139,49 +149,3 @@ rule fastq_screen_pe:
         fastq_screen --bisulfite --aligner bowtie2 --conf {input.conf} --threads {threads} --outdir {params.out_dir} --force --quiet {input.r2}
         echo "done"
         """
-
-# ## compile reports for raw reads
-# # Note that multiqc is not working properly in this rule. The shell command is not running as expected and failing when multiqc is called. The commands work when run interactively in the terminal..
-# # 01 raw read reports
-# rule multiqc_compile_reports_01:
-#     input:
-#         expand("{root}/{rep_dir}/01_fastqc/{se.ref}--{se.patient_id}-{se.group}-{se.srx_id}-{se.layout}/{se.accession}_fastqc.{suf}", root = config["root"], rep_dir=config["reports_dir"], se=sample_info_se.itertuples(), suf=["html","zip"]), # se fastqc se output
-#         expand("{root}/{rep_dir}/01_fastqc/{pe.ref}--{pe.patient_id}-{pe.group}-{pe.srx_id}-{pe.layout}/{pe.accession}_{read}_fastqc.{suf}", root = config["root"], rep_dir=config["reports_dir"], pe=sample_info_pe.itertuples(), read=["1", "2"], suf=["html", "zip"]), # pe fastqc pe R1 and R2 output
-#         expand("{root}/{rep_dir}/01_fastq_screen/{se.ref}--{se.patient_id}-{se.group}-{se.srx_id}-{se.layout}/{se.accession}_screen.{suf}", root = config["root"], se=sample_info_se.itertuples(), suf=["txt", "html"], rep_dir=config["reports_dir"]), # se fastq_screen output (other outputs: "png", "html", "bisulfite_orientation.png")
-#         expand("{root}/{rep_dir}/01_fastq_screen/{pe.ref}--{pe.patient_id}-{pe.group}-{pe.srx_id}-{pe.layout}/{pe.accession}_{read}_screen.{suf}", root = config["root"], pe=sample_info_pe.itertuples(), suf=["txt", "html"], rep_dir=config["reports_dir"], read=["1", "2"]), # pe fastq_screen output (other outputs: "png", "html", "bisulfite_orientation.png")
-
-#     output:
-#         input_list = expand("{root}/{rep_dir}/summary/{sample.ref}/01_qc_report_list.txt", root = config["root"], rep_dir=config["reports_dir"]),
-#         multiqc_command = expand("{root}/{rep_dir}/summary/{sample.ref}/01_multiqc_command.sh", root = config["root"], rep_dir=config["reports_dir"]),
-#         file = expand("{root}/{rep_dir}/summary/{sample.ref}/01_raw_multiqc.html", root = config["root"], rep_dir=config["reports_dir"])
-#     log:
-#         "logs/secondary_rules/multiqc/01_multiqc.log"
-#     conda:
-#         "../../environment_files/multiqc.yaml"
-#     params:
-#         output_filename = "01_raw_multiqc", # Required: do not change without adjusting the rule output
-#         outdir = config["root"] + "/" + config["reports_dir"] + "/summary", # Required: do not change without adjusting the rule output
-#         comment = "Multiqc report for raw reads produced by fastqc and fastq_screen. Report compiled by snakemake DMR_workflow pipeline.", # Optional: comment for multiqc report (can be changed freely)
-#         report_title = "01 Raw Sequence QC Reports", # Optional: title for multiqc report (can be changed freely)
-#         extra = "--verbose --fullnames --dirs --dirs-depth 3"  # Optional: extra parameters for multiqc (can be changed freely)
-#     shell:
-#         """
-#         touch {log}
-#         echo "starting multiqc rule" > {log}
-#         mkdir -p {params.outdir}
-#         echo "removing old input list file if it exists" >> {log}
-#         if [ -f {output.input_list} ]; then 
-#             rm {output.input_list}
-#         fi
-#         echo "creating new input list file" >> {log}
-#         touch {output.input_list}
-#         for i in {input}; do 
-#             echo $i >> {output.input_list}
-#         done
-#         echo "creating multiqc command file for reference" >> {log}
-#         echo 'multiqc --force --filename {params.output_filename} --outdir {params.outdir} --file-list {output.input_list} --title "{params.report_title}" --comment "{params.comment}" {params.extra}' > {output.multiqc_command}
-#         echo "running multiqc" >> {log}
-#         multiqc --force --filename {params.output_filename} --outdir {params.outdir} --file-list {output.input_list} --title "{params.report_title}" --comment "{params.comment}" {params.extra} >> {log} 2>&1
-#         sleep 5
-#         echo "done" >> {log}
-#         """

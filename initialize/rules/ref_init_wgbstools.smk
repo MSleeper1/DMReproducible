@@ -15,8 +15,10 @@ rule ref_init_wgbstools:
     conda:
         "../../environment_files/wgbstools.yaml"
 
-    # shadow:
-    #     "shallow"
+    threads: 2
+    
+    resources:
+        mem_mb=2000
 
     params:
         genome_name = config["ref"]["fasta"],

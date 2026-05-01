@@ -19,8 +19,10 @@ rule ref_prep_fastqscreen:
     conda:
         "../../environment_files/fastq-screen.yaml"
 
-    # shadow: 
-    #     "shallow"
+    threads: 4
+    
+    resources:
+        mem_mb=8000
 
     params:
         genomes_dir = expand("{root}/{genomes_dir}/{genome}", root = config["root"], genomes_dir = config["genomes_dir"], genome = config["ref"]["genome"])
@@ -29,9 +31,11 @@ rule ref_prep_fastqscreen:
         """
         mkdir -p {params.genomes_dir}
         cd {params.genomes_dir}
-        wget -r -np -nH --cut-dirs=3 https://www.bioinformatics.babraham.ac.uk/projects/fastq_screen/Genome_Data/FastQ_Screen_Genomes_Bisulfite/
+        fastq_screen --get_genomes --bisulfite --quiet --threads {threads}
         """
 
-# error occuring with fastq_screen get genomes command
+# if error occuring with fastq_screen get genomes command
 # fastq_screen --bisulfite --get_genomes 
 # work around by downloading them directlt with wget
+# wget -r -np -nH --cut-dirs=3 https://www.bioinformatics.babraham.ac.uk/projects/fastq_screen/Genome_Data/FastQ_Screen_Genomes_Bisulfite/
+# conf file needs to be adjusted if you use this work around       

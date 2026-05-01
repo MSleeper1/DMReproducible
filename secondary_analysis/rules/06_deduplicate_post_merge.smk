@@ -18,6 +18,11 @@ rule bismark_deduplicate_post_merge:
     conda:
         "../../environment_files/bismark.yaml"
 
+    threads: 2
+
+    resources:
+        mem_mb=4000
+
     params:
         output_dir = expand("{root}/{data_dir}/06_merged_deduped_bis/", root = config["root"], data_dir=config["data_dir"]),
         base_name = "{ref}--{patient_id}-{group}-{srx_id}-{layout}",
@@ -53,7 +58,12 @@ rule bismark_sort_by_coordinate_post_merge:
     
     conda:
         "../../environment_files/samtools.yaml"
-    
+
+    threads: 2
+
+    resources:
+        mem_mb=4000
+        
     params:
         temp_dir = expand("{root}/{data_dir}/temp/samtools/{{ref}}--{{patient_id}}-{{group}}-{{srx_id}}-{{layout}}", root = config["root"], data_dir=config["data_dir"]),
         sorted_bam = expand("{root}/{data_dir}/06_bismark_sorted_by_coordinate/{{ref}}--{{patient_id}}-{{group}}-{{srx_id}}-{{layout}}.bam", root = config["root"], data_dir=config["data_dir"])
@@ -107,7 +117,10 @@ rule sambamba_sort_index_markdups_post_merge_bwa:
         temp_dir = expand("{root}/{data_dir}/temp/sambamba/{{ref}}--{{srx_id}}", root = config["root"], data_dir=config["data_dir"]),
         sorted_bam = expand("{root}/{data_dir}/06_merged_deduped_bwa/{{ref}}--{{patient_id}}-{{group}}-{{srx_id}}-{{layout}}_sorted.bam", root = config["root"], data_dir=config["data_dir"]),
 
-    threads: 3
+    threads: 2
+
+    resources:
+        mem_mb=4000
 
     shell:
         """

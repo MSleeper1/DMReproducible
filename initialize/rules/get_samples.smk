@@ -12,6 +12,11 @@ rule get_samples_se:
     conda:
         "../../environment_files/sra-download.yaml"
 
+    threads: 2
+    
+    resources:
+        mem_mb=4000
+    
     params:
         temp_dir = expand("{root}/{data_dir}/temp/get_samples_se-{{ref}}--{{patient_id}}-{{group}}-{{srx_id}}-{{layout}}-{{accession}}", root = config["root"], data_dir = config["data_dir"]),
         output_dir = expand("{root}/{data_dir}/01_raw_sequence_files/{{ref}}--{{patient_id}}-{{group}}-{{srx_id}}-{{layout}}", root = config["root"], data_dir = config["data_dir"])
@@ -43,6 +48,11 @@ rule get_samples_pe:
     conda:
         "../../environment_files/sra-download.yaml"
 
+    threads: 2
+    
+    resources:
+        mem_mb=4000
+    
     params:
         temp_dir = expand("{root}/{data_dir}/temp/get_samples_se-{{ref}}--{{patient_id}}-{{group}}-{{srx_id}}-{{layout}}-{{accession}}", root = config["root"], data_dir = config["data_dir"]),
         output_dir = expand("{root}/{data_dir}/01_raw_sequence_files/{{ref}}--{{patient_id}}-{{group}}-{{srx_id}}-{{layout}}", root = config["root"], data_dir = config["data_dir"])

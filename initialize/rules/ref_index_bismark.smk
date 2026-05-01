@@ -18,8 +18,10 @@ rule ref_index_bismark:
     conda:
         "../../environment_files/bismark.yaml"
     
-    # shadow:
-    #     "shallow"
+    threads: 8
+    
+    resources:
+        mem_mb=8000
 
     params:
         bismk_args = config["prep_args"]["bismark_genome_prep"],
@@ -31,7 +33,7 @@ rule ref_index_bismark:
         mkdir -p {params.bismk_dir} 
         cp {input.fasta_path} {params.bismk_fasta_path} 
         echo "indexing {params.bismk_fasta_path} for bismark"
-        bismark_genome_preparation {params.bismk_args} {params.bismk_dir} > {log.stdout} 2> {log.stderr}
+        bismark_genome_preparation --parallel 3 {params.bismk_args} {params.bismk_dir} > {log.stdout} 2> {log.stderr}
         echo "prepping genomic nucleotide frequencies"
         bam2nuc --genomic_composition_only --genome_folder {params.bismk_dir}
         echo "done"

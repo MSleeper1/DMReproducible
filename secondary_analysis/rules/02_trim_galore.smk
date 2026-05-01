@@ -18,8 +18,10 @@ rule trim_galore_se:
         stdout = "logs/secondary_rules/02_trim_galore_se/02_trim_galore_se-{ref}--{patient_id}-{group}-{srx_id}-{layout}-{accession}.out",
         stderr = "logs/secondary_rules/02_trim_galore_se/02_trim_galore_se-{ref}--{patient_id}-{group}-{srx_id}-{layout}-{accession}.err"
 
-    # shadow: 
-    #     "shallow"
+    threads: 2
+
+    resources:
+        mem_mb=4000
 
     conda:
         "../../environment_files/trim_galore.yaml"
@@ -66,8 +68,10 @@ rule trim_galore_pe:
         stdout = "logs/secondary_rules/02_trim_galore_pe/02_trim_galore_pe-{ref}--{patient_id}-{group}-{srx_id}-{layout}-{accession}.out",
         stderr = "logs/secondary_rules/02_trim_galore_pe/02_trim_galore_pe-{ref}--{patient_id}-{group}-{srx_id}-{layout}-{accession}.err"
 
-    # shadow: 
-    #     "shallow"
+    threads: 2
+
+    resources:
+        mem_mb=4000
 
     conda:
         "../../environment_files/trim_galore.yaml"

@@ -20,11 +20,11 @@ rule bwameth_mapping_se:
         
     conda: 
         "../../environment_files/bwameth.yaml"
-    
-    # shadow: 
-    #     "shallow"
 
-    threads: 8
+    threads: 4
+    
+    resources:
+        mem_mb=8000
 
     params: 
         accession = "{accession}",
@@ -60,10 +60,10 @@ rule bwameth_mapping_pe:
     conda:
         "../../environment_files/bwameth.yaml"
 
-    # shadow: 
-    #     "shallow"
-
-    threads: 12
+    threads: 4
+    
+    resources:
+        mem_mb=8000
 
     params: 
         accession = "{accession}",

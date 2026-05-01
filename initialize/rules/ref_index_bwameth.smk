@@ -16,8 +16,10 @@ rule ref_index_bwameth:
     conda:
         "../../environment_files/bwameth.yaml"
 
-    # shadow:
-    #     "shallow"
+    threads: 4
+
+    resources:
+        mem_mb=8000
 
     params:
         bwa_dir = expand("{root}/{genomes_dir}/{genome}/bwameth/", root = config["root"], genomes_dir = config["genomes_dir"], genome = config["ref"]["genome"])
