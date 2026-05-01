@@ -47,6 +47,12 @@ ref_index_bwameth:                                       # rule name
     time: 05:00:00                                              # time limit for each job (D-HH:MM)
     mem_mb: 15000                                               # memory limit for each job (in MB)      
 
+get_ref:
+    mem_mb: 15000                                               # memory limit for each job (in MB) 
+
+get_ref_gtf:
+    mem_mb: 15000                                               # memory limit for each job (in MB) 
+
 ref_index_bismark:                                   
     time: 05:00:00
     mem_mb: 15000
@@ -92,19 +98,16 @@ bismark_mapping_se:
 bismark_mapping_pe:
     time: 3-10:00:00
     mem_mb: 40000
-    partition: bmm
 
 bwameth_mapping_se:
     time: 2-10:00:00
     mem_mb: 60000
     cpus-per-task: 12
-    partition: bmm
 
 bwameth_mapping_pe:
     time: 3-10:00:00
     mem_mb: 60000
     cpus-per-task: 16
-    partition: bmm
 
 # 04 and 06 deduplication rules
 sambamba_sort_index_markdups_pre_merge_bwa:
@@ -225,12 +228,10 @@ feature_counts_post_merge_bis_se:
 qualimap_post_merge_bwa:
     time: 0-20:00:00
     mem_mb: 40000
-    partition: bmm
 
 qualimap_post_merge_bis:
     time: 0-20:00:00
     mem_mb: 40000
-    partition: bmm
 
 qualimap_pre_merge_bis:
     mem_mb: 20000
