@@ -1,0 +1,222 @@
+# garden_resources.yaml
+# snakemake rersource usage priority: 
+# resources-yaml  >  rule-level resources:  >  Snakemake defaults
+
+# garden system stats
+# AMD Ryzen 7 5800X — 8 physical cores / 16 threads
+# 32GB RAM — usable budget ~28GB (--resources mem_mb=26000 in config.yaml)
+# NOTE: bwameth_mapping reduced from 60GB — will run slower than on HPC
+# NOTE: qualimap and bismark_mapping_pe reduced from 40GB
+
+# run `watch -n 5 free -h` in a separate terminal while bwameth 
+# is running to see if garden is hitting swap. If it does, those particular jobs 
+# may need to be run on the HPC and the outputs transferred to garden for downstream steps.
+
+# Recommended resources to include in rules for garden (must be put directly into rule as resource-yaml is not an option with this version of snakemake)
+
+# Initialize rules
+ref_index_bwameth:
+    mem_mb: 15000
+    threads: 8
+
+get_ref:
+    mem_mb: 8000
+    threads: 4
+
+get_ref_gtf:
+    mem_mb: 8000
+    threads: 4
+
+ref_index_bismark:
+    mem_mb: 15000
+    threads: 8
+
+ref_init_wgbstools:
+    mem_mb: 4000
+    threads: 4
+
+get_samples_se:
+    mem_mb: 8000
+    threads: 4
+
+get_samples_pe:
+    mem_mb: 8000
+    threads: 4
+
+# 01 QC rules
+fastq_screen_se:
+    mem_mb: 16000
+    threads: 8
+
+fastq_screen_pe:
+    mem_mb: 16000
+    threads: 8
+
+# 02 Trimming rules
+trim_galore_se:
+    mem_mb: 6000
+    threads: 4
+
+trim_galore_pe:
+    mem_mb: 6000
+    threads: 4
+
+# 03 Mapping rules
+# WARNING: bwameth originally needed 60GB — reduced to fit garden's 32GB
+# These jobs will run one at a time and will be slower than on the HPC
+bismark_mapping_se:
+    mem_mb: 16000
+    threads: 8
+
+bismark_mapping_pe:
+    mem_mb: 24000    # reduced from 40GB — runs alone, no concurrent heavy jobs
+    threads: 8
+
+bwameth_mapping_se:
+    mem_mb: 24000    # reduced from 60GB — performance will be impacted
+    threads: 8
+
+bwameth_mapping_pe:
+    mem_mb: 24000    # reduced from 60GB — performance will be impacted
+    threads: 8
+
+# 04/06 Deduplication rules
+sambamba_sort_index_markdups_pre_merge_bwa:
+    mem_mb: 8000
+    threads: 4
+
+sambamba_sort_index_markdups_post_merge_bwa:
+    mem_mb: 8000
+    threads: 4
+
+bismark_deduplicate_pre_merge:
+    mem_mb: 6000
+    threads: 4
+
+bismark_deduplicate_post_merge:
+    mem_mb: 6000
+    threads: 4
+
+# 05 Merge rules
+sambamba_merge_bwameth:
+    mem_mb: 12000
+    threads: 8
+
+sambamba_merge_bismark:
+    mem_mb: 6000
+    threads: 4
+
+# 04/06 QC rules
+bismark_sort_by_coordinate_pre_merge:
+    mem_mb: 6000
+    threads: 4
+
+bismark_sort_by_coordinate_post_merge:
+    mem_mb: 6000
+    threads: 4
+
+samtools_stats_post_merge_bwa:
+    mem_mb: 6000
+    threads: 4
+
+mosdepth_pre_merge_bwa:
+    mem_mb: 6000
+    threads: 4
+
+mosdepth_pre_merge_bis:
+    mem_mb: 6000
+    threads: 4
+
+mosdepth_post_merge_bwa:
+    mem_mb: 8000
+    threads: 4
+
+mosdepth_post_merge_bis:
+    mem_mb: 8000
+    threads: 4
+
+bismark_pre_merge_nuc_freq:
+    mem_mb: 6000
+    threads: 4
+
+bismark_post_merge_nuc_freq:
+    mem_mb: 6000
+    threads: 4
+
+feature_counts_pre_merge_bwa_se:
+    mem_mb: 6000
+    threads: 4
+
+feature_counts_pre_merge_bis_se:
+    mem_mb: 6000
+    threads: 4
+
+feature_counts_pre_merge_bwa_pe:
+    mem_mb: 6000
+    threads: 4
+
+feature_counts_pre_merge_bis_pe:
+    mem_mb: 6000
+    threads: 4
+
+feature_counts_post_merge_bwa_pe:
+    mem_mb: 6000
+    threads: 4
+
+feature_counts_post_merge_bis_pe:
+    mem_mb: 6000
+    threads: 4
+
+feature_counts_post_merge_bwa_se:
+    mem_mb: 6000
+    threads: 4
+
+feature_counts_post_merge_bis_se:
+    mem_mb: 6000
+    threads: 4
+
+# WARNING: qualimap originally needed 40GB — reduced to fit garden's 32GB
+qualimap_post_merge_bwa:
+    mem_mb: 24000
+    threads: 8
+
+qualimap_post_merge_bis:
+    mem_mb: 24000
+    threads: 8
+
+qualimap_pre_merge_bwa:
+    mem_mb: 16000
+    threads: 8
+
+qualimap_pre_merge_bis:
+    mem_mb: 16000
+    threads: 8
+
+fastqc_post_merge_bwa:
+    mem_mb: 6000
+    threads: 4
+
+fastqc_post_merge_bis:
+    mem_mb: 6000
+    threads: 4
+
+# 07 Methylation extraction rules
+bismark_methylation_extractor_se:
+    mem_mb: 6000
+    threads: 4
+
+bismark_methylation_extractor_pe:
+    mem_mb: 6000
+    threads: 4
+
+wgbstools_convert_bam_to_beta_bwa:
+    mem_mb: 6000
+    threads: 4
+
+wgbstools_convert_bam_to_beta_bis:
+    mem_mb: 6000
+    threads: 4
+
+methyldackel_bwa:
+    mem_mb: 6000
+    threads: 4

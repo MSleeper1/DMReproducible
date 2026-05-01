@@ -1,0 +1,29 @@
+# must be placed at ~/.config/snakemake/garden/config.yaml
+# can be used with: snakemake --profile garden
+
+# snakemake rersource usage priority: 
+# resources-yaml  >  rule-level resources:  >  Snakemake defaults
+
+# garden system stats
+# AMD Ryzen 7 5800X — 8 physical cores / 16 threads
+# 32GB RAM — usable budget ~28GB (--resources mem_mb=26000 in config.yaml)
+# NOTE: bwameth_mapping reduced from 60GB — will run slower than on HPC
+# NOTE: qualimap and bismark_mapping_pe reduced from 40GB
+
+# run `watch -n 5 free -h` in a separate terminal while bwameth 
+# is running to see if garden is hitting swap. If it does, those particular jobs 
+# may need to be run on the HPC and the outputs transferred to garden for downstream steps.
+
+cores: 12
+resources:
+  - mem_mb=26000        # ~80% of 32GB, leaves OS headroom
+use-conda: true
+rerun-incomplete: true
+printshellcmds: true
+rerun-triggers: mtime
+keep-going: true
+restart-times: 3
+latency-wait: 60
+scheduler: greedy
+local-cores: 2
+jobs: 3
