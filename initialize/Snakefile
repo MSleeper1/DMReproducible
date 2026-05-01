@@ -4,6 +4,8 @@
 # author: Meghan M. Sleeper
 # run on farm cluster with:  snakemake --cluster-config ../cluster.yaml --cluster "sbatch --parsable --partition={cluster.partition} --time={cluster.time} --mem={cluster.mem_mb} --nodes={cluster.nodes} --cpus-per-task={cluster.cpus-per-task} --output={cluster.output} --error={cluster.error} --job-name={cluster.name}" --jobs 20 --use-conda --rerun-incomplete --printshellcmds --rerun-triggers mtime --dry-run
 # run on garden biolab with: snakemake --cores 8 --use-conda --rerun-incomplete --printshellcmds --rerun-triggers mtime --dry-run
+# Garden: snakemake --profile garden --use-conda --rerun-incomplete --printshellcmds --rerun-triggers mtime --jobs 2 --dry-run
+# keep an eye on reso0urce usage: watch -n 5 free -h-h
 # run as a subworkflow for the DMReproducible pipeline before running secondary
 # purpose:
 #    - to initialize the workflow for the DMReproducible pipeline
@@ -25,8 +27,8 @@ import pandas as pd
 import initialize_helper_functions as hf
 
 #### assign config ####
-# configfile: "../config.garden.yaml"
-configfile: "../config.farm.yaml"
+configfile: "../config.garden.yaml"
+# configfile: "../config.farm.yaml"
 
 #### sample info ####
 sample_info = hf.get_sample_info_df(config["root"] + "/" + config["samples_tsv"])
@@ -48,8 +50,8 @@ rule_all_input_list = [
     expand("{root}/{genomes_dir}/{genome}/FastQ_Screen_Genomes_Bisulfite/fastq_screen.conf", root = config["root"], genomes_dir = config["genomes_dir"], genome = config["ref"]["genome"])
     ]
 
-if config["bismark"] == False:
-    rule_all_input_list.remove(expand("{root}/{genomes_dir}/{genome}/bismark/Bisulfite_Genome/", root = config["root"], genomes_dir = config["genomes_dir"], genome = config["ref"]["genome"]))
+# if config["bismark"] == False:
+#     rule_all_input_list.remove(expand("{root}/{genomes_dir}/{genome}/bismark/Bisulfite_Genome/", root = config["root"], genomes_dir = config["genomes_dir"], genome = config["ref"]["genome"]))
 
 # if config["sra_download"] == False:
 #     rule_all_input_list.remove(expand("{root}/{data_dir}/01_raw_sequence_files/{se.ref}--{se.patient_id}-{se.group}-{se.srx_id}-{se.layout}/{se.accession}.fastq", root = config["root"], data_dir=config["data_dir"], se=sample_info_se.itertuples())), 
